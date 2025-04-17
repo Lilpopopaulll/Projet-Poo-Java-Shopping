@@ -1,6 +1,6 @@
 package controller;
 
-import DAO.ClientDAO;
+import dao.ClientDAO;
 import model.Client;
 
 import java.sql.Connection;

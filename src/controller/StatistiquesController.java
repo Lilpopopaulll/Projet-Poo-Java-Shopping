@@ -1,4 +1,4 @@
 package controller;
 
-public class StatistiquesController{
+public class StatistiquesController {
 }

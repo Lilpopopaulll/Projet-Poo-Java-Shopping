@@ -3,8 +3,8 @@ Projet Poo Java | Shopping
 Répartition du travail
 Membre
 Responsabilités principales
-1. Base de données & DAO
-Création du modèle relationnel, BDD MySQL, scripts .sql, classes DAO.
+1. Base de données & dao
+Création du modèle relationnel, BDD MySQL, scripts .sql, classes dao.
 2. Modèle & Recherche d’infos
 Développement des entités métier, requêtes complexes, fonctions d’analyse.
 3. Interface graphique (Vue + Contrôleur)

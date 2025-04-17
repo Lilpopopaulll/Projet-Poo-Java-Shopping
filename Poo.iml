@@ -9,4 +9,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="mysql-connector-j-9.3.0" level="project" />
   </component>
+  <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.43.2.1</version> <!-- Tu peux mettre la version la plus récente -->
+  </dependency>
+
 </module>

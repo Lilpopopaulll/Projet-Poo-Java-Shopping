@@ -8,7 +8,7 @@ public class Client {
     private String motDePasse;
     private String typeClient;
 
-    // ✅ Constructeur avec 6 paramètres
+    // Constructeur
     public Client(int idClient, String nom, String prenom, String email, String motDePasse, String typeClient) {
         this.idClient = idClient;
         this.nom = nom;
@@ -18,13 +18,13 @@ public class Client {
         this.typeClient = typeClient;
     }
 
+    // Getters et setters
     public int getIdClient() { return idClient; }
     public String getNom() { return nom; }
     public String getPrenom() { return prenom; }
     public String getEmail() { return email; }
     public String getMotDePasse() { return motDePasse; }
     public String getTypeClient() { return typeClient; }
-
 
     public void setIdClient(int idClient) { this.idClient = idClient; }
     public void setNom(String nom) { this.nom = nom; }
@@ -33,4 +33,8 @@ public class Client {
     public void setMotDePasse(String motDePasse) { this.motDePasse = motDePasse; }
     public void setTypeClient(String typeClient) { this.typeClient = typeClient; }
 
+    // Méthode pour comparer le mot de passe de l'objet avec un mot de passe donné
+    public boolean checkPassword(String motDePasse) {
+        return this.motDePasse.equals(motDePasse); // Idéalement, on aurait un hash à vérifier ici
+    }
 }
