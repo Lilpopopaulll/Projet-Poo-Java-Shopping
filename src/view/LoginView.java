@@ -8,6 +8,7 @@ public class LoginView extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
+    private JButton registerButton;
 
     public LoginView() {
         setTitle("Connexion Client");
@@ -39,20 +40,41 @@ public class LoginView extends JFrame {
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
+        // Panel pour les boutons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        
         // Bouton de connexion
         loginButton = new JButton("Se connecter");
+        loginButton.setPreferredSize(new Dimension(130, 40));
+        
+        // Bouton d'inscription
+        registerButton = new JButton("S'inscrire");
+        registerButton.setPreferredSize(new Dimension(130, 40));
+        
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+        
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.gridwidth = 2;
-        panel.add(loginButton, gbc);
+        panel.add(buttonPanel, gbc);
 
         // Personnalisation du design
         panel.setBackground(Color.decode("#f0f0f0"));
+        buttonPanel.setBackground(Color.decode("#f0f0f0"));
+        
         usernameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        loginButton.setFont(new Font("Arial", Font.BOLD, 16));
-        loginButton.setBackground(new Color(50, 150, 255)); // Bleu plus moderne
+        
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setBackground(new Color(50, 150, 255)); // Bleu pour connexion
         loginButton.setForeground(Color.white);
+        loginButton.setFocusPainted(false);
+        
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14));
+        registerButton.setBackground(new Color(40, 167, 69)); // Vert pour inscription
+        registerButton.setForeground(Color.white);
+        registerButton.setFocusPainted(false);
 
         // Ajouter le panel à la fenêtre
         add(panel);
@@ -68,5 +90,9 @@ public class LoginView extends JFrame {
 
     public void setLoginButtonListener(ActionListener listener) {
         loginButton.addActionListener(listener);
+    }
+    
+    public void setRegisterButtonListener(ActionListener listener) {
+        registerButton.addActionListener(listener);
     }
 }

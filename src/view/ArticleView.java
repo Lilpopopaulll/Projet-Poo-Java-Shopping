@@ -112,34 +112,4 @@ public class ArticleView extends JPanel {
         revalidate();
         repaint();
     }
-
-    public void afficherDetailArticle(Article article) {
-        removeAll();
-        JPanel detailPanel = new DetailArticlePanel(article);
-
-        JButton backButton = new JButton("← Retour");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 16));
-        backButton.setFocusPainted(false);
-        backButton.setBackground(Color.WHITE);
-        backButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        backButton.addActionListener(e -> {
-            if (clickListener != null) {
-                clickListener.onArticleClick(null); // signal de retour
-            }
-        });
-
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.WHITE);
-        topPanel.add(backButton, BorderLayout.WEST);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel fullDetailPanel = new JPanel(new BorderLayout());
-        fullDetailPanel.setBackground(Color.WHITE);
-        fullDetailPanel.add(topPanel, BorderLayout.NORTH);
-        fullDetailPanel.add(detailPanel, BorderLayout.CENTER);
-
-        add(fullDetailPanel, BorderLayout.CENTER);
-        revalidate();
-        repaint();
-    }
 }
