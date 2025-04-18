@@ -7,31 +7,33 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import controller.ArticleClickListener;
 
 public class ArticleView extends JPanel {
     private JPanel articlePanel;
     private List<Article> articles;
+    private ArticleClickListener clickListener;
 
     public ArticleView() {
         setLayout(new BorderLayout());
         setBackground(Color.decode("#F5F5F5"));
     }
 
+    public void setArticleClickListener(ArticleClickListener listener) {
+        this.clickListener = listener;
+    }
+
     public void afficherArticles(List<Article> articles) {
         this.articles = articles;
+        removeAll();
 
-        removeAll(); // On vide le contenu pour tout reconstruire
-
-        // Conteneur principal vertical
         JPanel containerPanel = new JPanel();
         containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
         containerPanel.setBackground(Color.decode("#F5F5F5"));
 
-        // Marge latérale de 5%
         int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
         int sideMargin = (int) (screenWidth * 0.05);
 
-        // Titre
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.decode("#F5F5F5"));
         titlePanel.setBorder(BorderFactory.createEmptyBorder(20, sideMargin, 10, 0));
@@ -42,7 +44,6 @@ public class ArticleView extends JPanel {
 
         containerPanel.add(titlePanel);
 
-        // Grille des articles
         articlePanel = new JPanel(new GridLayout(0, 4, 20, 20));
         articlePanel.setBackground(Color.decode("#F5F5F5"));
         articlePanel.setBorder(BorderFactory.createEmptyBorder(0, sideMargin, 25, sideMargin));
@@ -60,7 +61,6 @@ public class ArticleView extends JPanel {
                     BorderFactory.createEmptyBorder(10, 10, 10, 10)
             ));
 
-            // Image
             JLabel imageLabel = new JLabel();
             imageLabel.setHorizontalAlignment(JLabel.CENTER);
             try {
@@ -72,7 +72,6 @@ public class ArticleView extends JPanel {
                 imageLabel.setText("Image manquante");
             }
 
-            // Infos
             JLabel nomLabel = new JLabel(article.getNom());
             nomLabel.setFont(new Font("Arial", Font.BOLD, 16));
 
@@ -90,11 +89,12 @@ public class ArticleView extends JPanel {
             card.add(imageLabel, BorderLayout.CENTER);
             card.add(bottom, BorderLayout.SOUTH);
 
-            // 🔥 Clic pour afficher les détails dans la même vue
             card.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    afficherDetailArticle(article);
+                    if (clickListener != null) {
+                        clickListener.onArticleClick(article);
+                    }
                 }
             });
 
@@ -103,7 +103,6 @@ public class ArticleView extends JPanel {
 
         containerPanel.add(articlePanel);
 
-        // Scroll
         JScrollPane scrollPane = new JScrollPane(containerPanel);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBorder(null);
@@ -114,17 +113,20 @@ public class ArticleView extends JPanel {
         repaint();
     }
 
-    private void afficherDetailArticle(Article article) {
+    public void afficherDetailArticle(Article article) {
         removeAll();
         JPanel detailPanel = new DetailArticlePanel(article);
 
-        // Bouton retour
         JButton backButton = new JButton("← Retour");
         backButton.setFont(new Font("Arial", Font.PLAIN, 16));
         backButton.setFocusPainted(false);
         backButton.setBackground(Color.WHITE);
         backButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        backButton.addActionListener(e -> afficherArticles(articles));
+        backButton.addActionListener(e -> {
+            if (clickListener != null) {
+                clickListener.onArticleClick(null); // signal de retour
+            }
+        });
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
