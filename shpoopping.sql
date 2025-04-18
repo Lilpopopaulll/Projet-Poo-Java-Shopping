@@ -125,11 +125,13 @@ DROP TABLE IF EXISTS `commande`;
 CREATE TABLE IF NOT EXISTS `commande` (
   `idCommande` int NOT NULL AUTO_INCREMENT,
   `idClient` int DEFAULT NULL,
-  `dateCommande` date NOT NULL,
+  `dateCommande` date DEFAULT NULL,
   `total` int NOT NULL,
+  `panier` VARCHAR(20) DEFAULT 'panier',
   PRIMARY KEY (`idCommande`),
   KEY `Etrangère` (`idClient`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------------------
 

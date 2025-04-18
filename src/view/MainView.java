@@ -3,6 +3,7 @@ package view;
 import controller.ArticleController;
 import controller.LoginController;
 import controller.LoginStateListener;
+import controller.PanierController;
 import model.Client;
 import model.EtatConnexion;
 
@@ -14,12 +15,14 @@ import java.sql.Connection;
 
 public class MainView extends JFrame {
 
-    private ArticleView articleView;
+    private LandingPageView landingPageView;
     private ArticleDetailView articleDetailView;
     private ArticleController articleController;
     private JPanel mainPanel;
     private JButton loginButton;
+    private JButton panierButton;
     private LoginController loginController;
+    private PanierController panierController;
     private Client clientConnecte;
     private JLabel userLabel;
     private JPanel buttonPanel;
@@ -38,21 +41,21 @@ public class MainView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Créer les vues
-        articleView = new ArticleView();
+        landingPageView = new LandingPageView();
         articleDetailView = new ArticleDetailView();
         
         // Créer le panneau principal qui contiendra les vues
         mainPanel = new JPanel(new CardLayout());
-        mainPanel.add(articleView, "articles");
+        mainPanel.add(landingPageView, "landing");
         mainPanel.add(articleDetailView, "detail");
         
         // Créer le contrôleur en lui passant les vues et la connexion
-        articleController = new ArticleController(articleView, articleDetailView, connection) {
+        articleController = new ArticleController(landingPageView.getArticleView(), articleDetailView, connection) {
             @Override
             public void onArticleClick(model.Article article) {
                 CardLayout cl = (CardLayout) mainPanel.getLayout();
                 if (article == null) {
-                    cl.show(mainPanel, "articles");
+                    cl.show(mainPanel, "landing");
                     super.onArticleClick(article);
                 } else {
                     cl.show(mainPanel, "detail");
@@ -60,12 +63,25 @@ public class MainView extends JFrame {
                 }
             }
         };
+        
+        // Configurer l'écouteur de clics sur les articles dans la landing page
+        landingPageView.setArticleClickListener(articleController);
 
         // Ajouter le bouton de connexion en haut à droite
         JPanel topPanel = new JPanel(new BorderLayout());
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(new Color(245, 245, 245));
         
+        // Bouton panier
+        panierButton = new JButton("Voir panier");
+        panierButton.setBackground(new Color(255, 193, 7)); // Jaune pour le panier
+        panierButton.setForeground(Color.BLACK);
+        panierButton.setFont(new Font("Arial", Font.BOLD, 14));
+        panierButton.setFocusPainted(false);
+        panierButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        panierButton.setVisible(false); // Caché par défaut, visible seulement quand connecté
+        
+        // Bouton connexion
         loginButton = new JButton("Se connecter");
         loginButton.setBackground(new Color(50, 150, 255));
         loginButton.setForeground(Color.WHITE);
@@ -80,30 +96,48 @@ public class MainView extends JFrame {
         userLabel.setVisible(false);
         
         buttonPanel.add(userLabel);
+        buttonPanel.add(panierButton);
         buttonPanel.add(loginButton);
         topPanel.add(buttonPanel, BorderLayout.EAST);
         
         // Créer un panel conteneur avec BorderLayout
         JPanel containerPanel = new JPanel(new BorderLayout());
+        
+        // Ajouter les boutons en haut (fixe)
         containerPanel.add(topPanel, BorderLayout.NORTH);
+        
+        // Ajouter le panneau principal directement (sans le hero banner)
         containerPanel.add(mainPanel, BorderLayout.CENTER);
         
-        // Ajouter le panneau conteneur au JFrame
-        setContentPane(containerPanel);
+        // Ajouter le panel conteneur à la fenêtre
+        add(containerPanel);
 
-        // Initialiser le LoginController
+        // Initialiser les contrôleurs
         initLoginController(connection);
+        initPanierController(connection, articleController, mainPanel);
         
+        // Configurer le bouton de connexion
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (loginController.estConnecte()) {
-                    // Si déjà connecté, déconnexion
+                    // Déconnexion
                     loginController.deconnecter();
+                    // Retourner à la landing page
+                    CardLayout cl = (CardLayout) mainPanel.getLayout();
+                    cl.show(mainPanel, "landing");
                 } else {
-                    // Sinon, afficher la fenêtre de connexion
+                    // Connexion
                     afficherFenetreConnexion(connection);
                 }
+            }
+        });
+        
+        // Configurer le bouton du panier
+        panierButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panierController.afficherPanier();
             }
         });
 
@@ -164,18 +198,30 @@ public class MainView extends JFrame {
         });
     }
     
+    private void initPanierController(Connection connection, ArticleController articleController, JPanel mainPanel) {
+        panierController = new PanierController(connection, articleController, mainPanel);
+    }
+    
     private void mettreAJourBoutonConnexion(EtatConnexion etatConnexion) {
         if (etatConnexion == EtatConnexion.NON_CONNECTE) {
             // État déconnecté
             userLabel.setVisible(false);
+            panierButton.setVisible(false);
             loginButton.setText("Se connecter");
             loginButton.setBackground(new Color(50, 150, 255));
+            
+            // Mettre à jour le contrôleur de panier
+            panierController.setClientConnecte(null);
         } else {
             // État connecté
             userLabel.setText("Bonjour, " + clientConnecte.getPrenom());
             userLabel.setVisible(true);
+            panierButton.setVisible(true);
             loginButton.setText("Déconnexion");
             loginButton.setBackground(new Color(220, 53, 69)); // Rouge pour déconnexion
+            
+            // Mettre à jour le contrôleur de panier
+            panierController.setClientConnecte(clientConnecte);
         }
         
         // Rafraîchir l'affichage

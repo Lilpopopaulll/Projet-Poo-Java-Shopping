@@ -30,7 +30,7 @@ public class ArticleDAO {
                         rs.getDouble("prixVrac"),
                         rs.getInt("quantiteVrac"),
                         rs.getInt("stock"),
-                        rs.getString("description") // ✅ Ajout de la description
+                        rs.getString("description") // Ajout de la description
                 ));
             }
         } catch (SQLException e) {
@@ -55,7 +55,7 @@ public class ArticleDAO {
                         rs.getDouble("prixVrac"),
                         rs.getInt("quantiteVrac"),
                         rs.getInt("stock"),
-                        rs.getString("description") // ✅ Ajout ici aussi
+                        rs.getString("description") // Ajout ici aussi
                 ));
             }
         } catch (SQLException e) {
@@ -74,5 +74,30 @@ public class ArticleDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    // Récupérer un article par son ID
+    public Article getById(int idArticle) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Article WHERE idArticle = ?");
+            stmt.setInt(1, idArticle);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Article(
+                    rs.getInt("idArticle"),
+                    rs.getString("nom"),
+                    rs.getString("marque"),
+                    rs.getString("urlImage"),
+                    rs.getDouble("prixUnitaire"),
+                    rs.getDouble("prixVrac"),
+                    rs.getInt("quantiteVrac"),
+                    rs.getInt("stock"),
+                    rs.getString("description")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

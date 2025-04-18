@@ -31,12 +31,11 @@ public class ArticleView extends JPanel {
         containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
         containerPanel.setBackground(Color.decode("#F5F5F5"));
 
-        int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
-        int sideMargin = (int) (screenWidth * 0.05);
+        int sideMargin = 30;
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.decode("#F5F5F5"));
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, sideMargin, 10, 0));
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, sideMargin, 10, sideMargin));
 
         JLabel titleLabel = new JLabel("Nos Vêtements");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
@@ -44,14 +43,24 @@ public class ArticleView extends JPanel {
 
         containerPanel.add(titlePanel);
 
-        articlePanel = new JPanel(new GridLayout(0, 4, 20, 20));
+        articlePanel = new JPanel(new GridBagLayout());
         articlePanel.setBackground(Color.decode("#F5F5F5"));
         articlePanel.setBorder(BorderFactory.createEmptyBorder(0, sideMargin, 25, sideMargin));
 
+        int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
         int screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
-        int cardWidth = (int) ((screenWidth * 0.90 - (3 * 20)) / 4);
-        int cardHeight = (int) (screenHeight * 0.30);
+        
+        int maxCardWidth = 300; 
+        int cardWidth = Math.min((screenWidth - 2 * sideMargin - 60) / 4, maxCardWidth);
+        int cardHeight = (int) (screenHeight * 0.40);
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+        
+        int col = 0;
+        int row = 0;
+        
         for (Article article : articles) {
             JPanel card = new JPanel(new BorderLayout());
             card.setBackground(Color.WHITE);
@@ -75,7 +84,13 @@ public class ArticleView extends JPanel {
             JLabel nomLabel = new JLabel(article.getNom());
             nomLabel.setFont(new Font("Arial", Font.BOLD, 16));
 
-            JLabel prixLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
+            JLabel prixLabel;
+            if (article.getStock() <= 0) {
+                prixLabel = new JLabel("Rupture de stock");
+                prixLabel.setForeground(Color.RED);
+            } else {
+                prixLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
+            }
             prixLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 
             JPanel bottom = new JPanel();
@@ -89,26 +104,38 @@ public class ArticleView extends JPanel {
             card.add(imageLabel, BorderLayout.CENTER);
             card.add(bottom, BorderLayout.SOUTH);
 
-            card.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (clickListener != null) {
-                        clickListener.onArticleClick(article);
+            if (article.getStock() > 0) {
+                card.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (clickListener != null) {
+                            clickListener.onArticleClick(article);
+                        }
                     }
-                }
-            });
+                });
+                card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else {
+                card.setBackground(new Color(245, 245, 245));
+                card.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                ));
+            }
 
-            articlePanel.add(card);
+            gbc.gridx = col;
+            gbc.gridy = row;
+            articlePanel.add(card, gbc);
+            
+            col++;
+            if (col >= 4) {
+                col = 0;
+                row++;
+            }
         }
 
         containerPanel.add(articlePanel);
 
-        JScrollPane scrollPane = new JScrollPane(containerPanel);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBorder(null);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-        add(scrollPane, BorderLayout.CENTER);
+        add(containerPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
     }

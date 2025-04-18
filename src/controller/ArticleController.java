@@ -62,20 +62,10 @@ public class ArticleController implements ArticleClickListener {
 
     private void ajouterAuPanier(Article article, int quantite) {
         if (article != null && quantite > 0) {
-            panier.ajouterArticle(article, quantite);
-            
             // Notifier le listener du panier si présent
             if (panierListener != null) {
                 panierListener.onAddToCart(article, quantite);
             }
-            
-            // Afficher un message de confirmation
-            JOptionPane.showMessageDialog(
-                null, 
-                quantite + " x " + article.getNom() + " ajouté(s) au panier",
-                "Ajout au panier", 
-                JOptionPane.INFORMATION_MESSAGE
-            );
         }
     }
 
