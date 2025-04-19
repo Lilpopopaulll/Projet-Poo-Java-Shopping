@@ -41,6 +41,15 @@ public class PanierView extends JPanel {
         panierTable.getColumnModel().getColumn(2).setPreferredWidth(80);  // Quantité
         panierTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Sous-total
         panierTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Actions
+        
+        // Initialisation du bouton de validation pour éviter l'erreur "validerButton est null"
+        validerButton = new JButton("Valider ma commande");
+        validerButton.setFont(new Font("Arial", Font.BOLD, 16));
+        validerButton.setForeground(Color.WHITE);
+        validerButton.setBackground(Color.decode("#28a745"));
+        validerButton.setFocusPainted(false);
+        validerButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+        validerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
     
     // Méthode pour afficher le contenu du panier
@@ -221,15 +230,6 @@ public class PanierView extends JPanel {
         bottomPanel.add(totalPanel, BorderLayout.WEST);
         
         // Bouton de validation avec style amélioré
-        validerButton = new JButton("Valider ma commande");
-        validerButton.setFont(new Font("Arial", Font.BOLD, 16));
-        validerButton.setForeground(Color.WHITE);
-        validerButton.setBackground(Color.decode("#28a745"));
-        validerButton.setFocusPainted(false);
-        validerButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
-        validerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Désactiver le bouton si le panier est vide
         validerButton.setEnabled(!panier.getLignesCommande().isEmpty());
         
         bottomPanel.add(validerButton, BorderLayout.EAST);
@@ -265,16 +265,31 @@ public class PanierView extends JPanel {
     
     // Définir l'écouteur pour le bouton de validation
     public void setValidationListener(ActionListener listener) {
-        if (validerButton != null) {
-            // Supprimer les écouteurs existants pour éviter les doublons
-            for (ActionListener al : validerButton.getActionListeners()) {
-                validerButton.removeActionListener(al);
+        try {
+            if (validerButton != null) {
+                // Supprimer les écouteurs existants pour éviter les doublons
+                for (ActionListener al : validerButton.getActionListeners()) {
+                    validerButton.removeActionListener(al);
+                }
+                // Ajouter le nouvel écouteur
+                validerButton.addActionListener(listener);
+                System.out.println("Écouteur ajouté au bouton de validation");
+            } else {
+                System.out.println("Erreur: validerButton est null dans setValidationListener");
+                // Créer le bouton s'il n'existe pas encore
+                validerButton = new JButton("Valider ma commande");
+                validerButton.setFont(new Font("Arial", Font.BOLD, 16));
+                validerButton.setForeground(Color.WHITE);
+                validerButton.setBackground(Color.decode("#28a745"));
+                validerButton.setFocusPainted(false);
+                validerButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+                validerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                validerButton.addActionListener(listener);
+                System.out.println("Bouton de validation créé et écouteur ajouté");
             }
-            // Ajouter le nouvel écouteur
-            validerButton.addActionListener(listener);
-            System.out.println("Écouteur ajouté au bouton de validation");
-        } else {
-            System.out.println("Erreur: validerButton est null dans setValidationListener");
+        } catch (Exception e) {
+            System.err.println("Exception dans setValidationListener: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     

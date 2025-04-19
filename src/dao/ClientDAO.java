@@ -3,9 +3,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import model.Client;
 
-
+/**
+ * DAO pour les clients
+ */
 public class ClientDAO {
 
     private Connection connection;
@@ -58,6 +62,31 @@ public class ClientDAO {
         return null;
     }
 
+    /**
+     * Récupérer tous les clients
+     * @return Liste de tous les clients
+     */
+    public List<Client> getAll() {
+        List<Client> clients = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Client");
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                clients.add(new Client(
+                    rs.getInt("idClient"),
+                    rs.getString("nom"),
+                    rs.getString("prenom"),
+                    rs.getString("email"),
+                    rs.getString("motDePasse"),
+                    rs.getString("typeClient")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return clients;
+    }
 
     public void create(Client client) {
         try {
@@ -75,7 +104,4 @@ public class ClientDAO {
             e.printStackTrace();
         }
     }
-
-
-
 }

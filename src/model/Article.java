@@ -9,7 +9,8 @@ public class Article {
     private int quantiteVrac;
     private int stock;
     private String urlImage;
-    private String description; // ✅ Nouveau champ
+    private String description;
+    private String categorie;
 
     public Article(int idArticle, String nom, String marque, String urlImage, double prixUnitaire,
                    double prixVrac, int quantiteVrac, int stock, String description) {
@@ -21,7 +22,22 @@ public class Article {
         this.quantiteVrac = quantiteVrac;
         this.stock = stock;
         this.urlImage = urlImage;
-        this.description = description; // ✅ Initialisation
+        this.description = description;
+        this.categorie = "Divers"; // Valeur par défaut
+    }
+    
+    public Article(int idArticle, String nom, String marque, String urlImage, double prixUnitaire,
+                   double prixVrac, int quantiteVrac, int stock, String description, String categorie) {
+        this.idArticle = idArticle;
+        this.nom = nom;
+        this.marque = marque;
+        this.prixUnitaire = prixUnitaire;
+        this.prixVrac = prixVrac;
+        this.quantiteVrac = quantiteVrac;
+        this.stock = stock;
+        this.urlImage = urlImage;
+        this.description = description;
+        this.categorie = categorie;
     }
 
     // Getters
@@ -33,7 +49,8 @@ public class Article {
     public int getQuantiteVrac() { return quantiteVrac; }
     public int getStock() { return stock; }
     public String getUrlImage() { return urlImage; }
-    public String getDescription() { return description; } // ✅ Getter description
+    public String getDescription() { return description; }
+    public String getCategorie() { return categorie; }
 
     // Setters
     public void setIdArticle(int idArticle) { this.idArticle = idArticle; }
@@ -44,5 +61,6 @@ public class Article {
     public void setQuantiteVrac(int quantiteVrac) { this.quantiteVrac = quantiteVrac; }
     public void setStock(int stock) { this.stock = stock; }
     public void setUrlImage(String urlImage) { this.urlImage = urlImage; }
-    public void setDescription(String description) { this.description = description; } // ✅ Setter description
+    public void setDescription(String description) { this.description = description; }
+    public void setCategorie(String categorie) { this.categorie = categorie; }
 }

@@ -1,5 +1,6 @@
 package controller;
 
+import model.Admin;
 import model.Client;
 import model.EtatConnexion;
 
@@ -9,8 +10,9 @@ import model.EtatConnexion;
 public interface LoginStateListener {
     /**
      * Méthode appelée lorsque l'état de connexion change
-     * @param etatConnexion Le nouvel état de connexion
-     * @param client Le client connecté (null si déconnecté)
+     * @param etatConnexion Nouvel état de connexion
+     * @param client Client connecté (peut être null)
+     * @param admin Administrateur connecté (peut être null)
      */
-    void onLoginStateChanged(EtatConnexion etatConnexion, Client client);
+    void onLoginStateChanged(EtatConnexion etatConnexion, Client client, Admin admin);
 }

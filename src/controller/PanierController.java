@@ -48,7 +48,15 @@ public class PanierController implements PanierListener, ArticleClickListener {
         
         // Initialiser la vue du panier
         this.panierView = new PanierView();
-        configurerPanierView();
+        
+        // Configurer les écouteurs après l'initialisation de la vue
+        try {
+            configurerPanierView();
+            System.out.println("Écouteurs du panier configurés");
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la configuration des écouteurs du panier: " + e.getMessage());
+            e.printStackTrace();
+        }
         
         // Ajouter la vue du panier au mainPanel
         if (mainPanel != null) {
@@ -189,7 +197,12 @@ public class PanierController implements PanierListener, ArticleClickListener {
             panierView.afficherPanier(panier);
             
             // Reconfigurer les écouteurs après chaque affichage du panier
-            configurerPanierView();
+            try {
+                configurerPanierView();
+            } catch (Exception e) {
+                System.err.println("Erreur lors de la configuration des écouteurs du panier: " + e.getMessage());
+                e.printStackTrace();
+            }
             
             // Afficher la vue du panier
             if (mainPanel != null) {
@@ -216,18 +229,21 @@ public class PanierController implements PanierListener, ArticleClickListener {
         });
         
         // Configurer l'écouteur pour le bouton de validation
-        panierView.setValidationListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Clic sur le bouton Valider la commande détecté");
-                validerPanier();
-            }
-        });
+        try {
+            panierView.setValidationListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("Clic sur le bouton Valider la commande détecté");
+                    validerPanier();
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la configuration de l'écouteur de validation: " + e.getMessage());
+            e.printStackTrace();
+        }
         
         // Configurer l'écouteur pour le bouton de retour
         panierView.setRetourListener(this);
-        
-        System.out.println("Écouteurs du panier configurés");
     }
 
     // Supprimer un article du panier

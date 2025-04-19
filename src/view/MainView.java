@@ -1,10 +1,12 @@
 package view;
 
+import controller.AdminController;
 import controller.ArticleController;
 import controller.LoginController;
 import controller.LoginStateListener;
 import controller.PanierController;
 import controller.HistoriqueController;
+import model.Admin;
 import model.Client;
 import model.EtatConnexion;
 
@@ -27,8 +29,11 @@ public class MainView extends JFrame {
     private PanierController panierController;
     private HistoriqueController historiqueController;
     private Client clientConnecte;
+    private Admin adminConnecte;
     private JLabel userLabel;
     private JPanel buttonPanel;
+    private AdminView adminView;
+    private AdminController adminController;
 
     public MainView(Connection connection) {
         // Configuration de la fenêtre principale
@@ -182,9 +187,17 @@ public class MainView extends JFrame {
             // Ajouter un écouteur pour les changements d'état de connexion
             loginController.addLoginStateListener(new LoginStateListener() {
                 @Override
-                public void onLoginStateChanged(EtatConnexion etatConnexion, Client client) {
+                public void onLoginStateChanged(EtatConnexion etatConnexion, Client client, Admin admin) {
                     clientConnecte = client;
+                    adminConnecte = admin;
                     mettreAJourBoutonConnexion(etatConnexion);
+                    // Correction : afficher la vue admin si connexion admin
+                    if (etatConnexion == EtatConnexion.CONNEXION_ADMINISTRATEUR && admin != null) {
+                        afficherInterfaceAdmin(connection);
+                    } else {
+                        CardLayout cl = (CardLayout) mainPanel.getLayout();
+                        cl.show(mainPanel, "landing");
+                    }
                 }
             });
         } else {
@@ -193,9 +206,17 @@ public class MainView extends JFrame {
             // Réajouter l'écouteur pour les changements d'état de connexion
             loginController.addLoginStateListener(new LoginStateListener() {
                 @Override
-                public void onLoginStateChanged(EtatConnexion etatConnexion, Client client) {
+                public void onLoginStateChanged(EtatConnexion etatConnexion, Client client, Admin admin) {
                     clientConnecte = client;
+                    adminConnecte = admin;
                     mettreAJourBoutonConnexion(etatConnexion);
+                    // Correction : afficher la vue admin si connexion admin
+                    if (etatConnexion == EtatConnexion.CONNEXION_ADMINISTRATEUR && admin != null) {
+                        afficherInterfaceAdmin(connection);
+                    } else {
+                        CardLayout cl = (CardLayout) mainPanel.getLayout();
+                        cl.show(mainPanel, "landing");
+                    }
                 }
             });
         }
@@ -211,9 +232,19 @@ public class MainView extends JFrame {
         // Ajouter un écouteur pour les changements d'état de connexion
         loginController.addLoginStateListener(new LoginStateListener() {
             @Override
-            public void onLoginStateChanged(EtatConnexion etatConnexion, Client client) {
+            public void onLoginStateChanged(EtatConnexion etatConnexion, Client client, Admin admin) {
                 clientConnecte = client;
+                adminConnecte = admin;
                 mettreAJourBoutonConnexion(etatConnexion);
+                
+                // Si c'est un administrateur, afficher l'interface d'administration
+                if (etatConnexion == EtatConnexion.CONNEXION_ADMINISTRATEUR && admin != null) {
+                    afficherInterfaceAdmin(connection);
+                } else {
+                    // Si ce n'est pas un administrateur, afficher la landing page
+                    CardLayout cl = (CardLayout) mainPanel.getLayout();
+                    cl.show(mainPanel, "landing");
+                }
             }
         });
     }
@@ -227,6 +258,83 @@ public class MainView extends JFrame {
         historiqueController.setParentClickListener(articleController);
     }
     
+    private void afficherInterfaceAdmin(Connection connection) {
+        // Créer la vue d'administration si elle n'existe pas
+        if (adminView == null) {
+            adminView = new AdminView();
+            adminController = new AdminController(adminView, connection, this);
+            adminController.setAdminConnecte(adminConnecte);
+            adminController.initialiser();
+            
+            // Ajouter la vue d'administration au panneau principal
+            mainPanel.add(adminView, "admin");
+            
+            // Ajouter les boutons de navigation de l'admin à la barre de navigation existante
+            JButton articlesNavButton = adminView.getArticlesNavButton();
+            JButton usersNavButton = adminView.getUsersNavButton();
+            
+            // Configurer le style des boutons pour qu'ils correspondent à la barre blanche
+            articlesNavButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            usersNavButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            
+            // Ajouter les boutons à la barre de navigation
+            buttonPanel.add(articlesNavButton, 0);
+            buttonPanel.add(usersNavButton, 1);
+            
+            // Configurer le bouton de déconnexion
+            adminView.setNavDeconnexionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Déconnecter l'administrateur
+                    loginController.deconnecter();
+                    
+                    // Retourner à la landing page
+                    CardLayout cl = (CardLayout) mainPanel.getLayout();
+                    cl.show(mainPanel, "landing");
+                }
+            });
+            
+            // Cacher les boutons par défaut
+            articlesNavButton.setVisible(false);
+            usersNavButton.setVisible(false);
+        }
+        
+        // Afficher la vue d'administration dans le panneau principal
+        CardLayout cl = (CardLayout) mainPanel.getLayout();
+        cl.show(mainPanel, "admin");
+        
+        // Afficher les boutons de navigation admin et configurer le bouton de déconnexion
+        if (adminView.getArticlesNavButton() != null) {
+            adminView.getArticlesNavButton().setVisible(true);
+            adminView.getUsersNavButton().setVisible(true);
+            
+            // Cacher le bouton de connexion standard et utiliser celui de l'admin
+            loginButton.setVisible(false);
+            
+            // S'assurer que le bouton de déconnexion est visible
+            JButton deconnexionButton = adminView.getDeconnexionButton();
+            if (deconnexionButton != null) {
+                // Configurer le style du bouton pour qu'il corresponde à la barre blanche
+                deconnexionButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+                
+                // Ajouter le bouton à la barre de navigation s'il n'y est pas déjà
+                boolean dejaAjoute = false;
+                for (Component comp : buttonPanel.getComponents()) {
+                    if (comp == deconnexionButton) {
+                        dejaAjoute = true;
+                        break;
+                    }
+                }
+                
+                if (!dejaAjoute) {
+                    buttonPanel.add(deconnexionButton);
+                }
+                
+                deconnexionButton.setVisible(true);
+            }
+        }
+    }
+    
     private void mettreAJourBoutonConnexion(EtatConnexion etatConnexion) {
         if (etatConnexion == EtatConnexion.NON_CONNECTE) {
             // État déconnecté
@@ -235,22 +343,67 @@ public class MainView extends JFrame {
             historiqueButton.setVisible(false);
             loginButton.setText("Se connecter");
             loginButton.setBackground(new Color(50, 150, 255));
+            loginButton.setVisible(true);
+            
+            // Cacher les boutons de navigation admin s'ils existent
+            if (adminView != null) {
+                adminView.getArticlesNavButton().setVisible(false);
+                adminView.getUsersNavButton().setVisible(false);
+                
+                // Cacher également le bouton de déconnexion admin
+                JButton deconnexionButton = adminView.getDeconnexionButton();
+                if (deconnexionButton != null) {
+                    deconnexionButton.setVisible(false);
+                }
+            }
             
             // Mettre à jour le contrôleur de panier
             panierController.setClientConnecte(null);
             historiqueController.setClientConnecte(null);
-        } else {
-            // État connecté
+        } else if (etatConnexion == EtatConnexion.CONNEXION_CLIENT) {
+            // État connecté en tant que client
             userLabel.setText("Bonjour, " + clientConnecte.getPrenom());
             userLabel.setVisible(true);
             panierButton.setVisible(true);
             historiqueButton.setVisible(true);
             loginButton.setText("Déconnexion");
             loginButton.setBackground(new Color(220, 53, 69)); // Rouge pour déconnexion
+            loginButton.setVisible(true);
+            
+            // Cacher les boutons de navigation admin s'ils existent
+            if (adminView != null) {
+                adminView.getArticlesNavButton().setVisible(false);
+                adminView.getUsersNavButton().setVisible(false);
+                
+                // Cacher également le bouton de déconnexion admin
+                JButton deconnexionButton = adminView.getDeconnexionButton();
+                if (deconnexionButton != null) {
+                    deconnexionButton.setVisible(false);
+                }
+            }
             
             // Mettre à jour le contrôleur de panier
             panierController.setClientConnecte(clientConnecte);
             historiqueController.setClientConnecte(clientConnecte);
+        } else if (etatConnexion == EtatConnexion.CONNEXION_ADMINISTRATEUR) {
+            // État connecté en tant qu'administrateur
+            userLabel.setText("Admin: " + adminConnecte.getEmail());
+            userLabel.setVisible(true);
+            panierButton.setVisible(false);
+            historiqueButton.setVisible(false);
+            loginButton.setVisible(false);
+            
+            // Afficher les boutons de navigation admin s'ils existent
+            if (adminView != null) {
+                adminView.getArticlesNavButton().setVisible(true);
+                adminView.getUsersNavButton().setVisible(true);
+                
+                // Afficher également le bouton de déconnexion admin
+                JButton deconnexionButton = adminView.getDeconnexionButton();
+                if (deconnexionButton != null) {
+                    deconnexionButton.setVisible(true);
+                }
+            }
         }
         
         // Rafraîchir l'affichage

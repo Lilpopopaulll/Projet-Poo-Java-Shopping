@@ -1,6 +1,8 @@
 package controller;
 
+import dao.AdminDAO;
 import dao.ClientDAO;
+import model.Admin;
 import model.Client;
 import model.EtatConnexion;
 import view.LoginView;
@@ -19,7 +21,9 @@ import java.util.List;
 public class LoginController {
     private final LoginView loginView;
     private final ClientDAO clientDAO;
+    private final AdminDAO adminDAO;
     private Client clientConnecte;
+    private Admin adminConnecte;
     private EtatConnexion etatConnexion;
     private final List<LoginStateListener> listeners;
 
@@ -31,6 +35,7 @@ public class LoginController {
     public LoginController(LoginView loginView, Connection connection) {
         this.loginView = loginView;
         this.clientDAO = new ClientDAO(connection);
+        this.adminDAO = new AdminDAO(connection);
         this.etatConnexion = EtatConnexion.NON_CONNECTE;
         this.listeners = new ArrayList<>();
         
@@ -143,7 +148,33 @@ public class LoginController {
             return;
         }
         
-        // Rechercher le client par email
+        // Essayer d'abord l'authentification administrateur
+        Admin admin = adminDAO.authentifier(email, motDePasse);
+        
+        if (admin != null) {
+            // Connexion administrateur réussie
+            this.adminConnecte = admin;
+            this.clientConnecte = null;
+            this.etatConnexion = EtatConnexion.CONNEXION_ADMINISTRATEUR;
+            
+            // Fermer la fenêtre de connexion
+            loginView.setVisible(false);
+            loginView.dispose();
+            
+            // Notifier les écouteurs du changement d'état
+            notifierChangementEtat();
+            
+            // Afficher un message de bienvenue
+            JOptionPane.showMessageDialog(
+                null,
+                "Bienvenue Administrateur " + admin.getEmail() + " !",
+                "Connexion réussie",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+        
+        // Si ce n'est pas un admin, essayer l'authentification client
         Client client = clientDAO.getByEmail(email);
         
         if (client == null) {
@@ -167,15 +198,10 @@ public class LoginController {
             return;
         }
         
-        // Connexion réussie
+        // Connexion client réussie
         this.clientConnecte = client;
-        
-        // Déterminer le type de connexion
-        if ("ADMIN".equalsIgnoreCase(client.getTypeClient())) {
-            this.etatConnexion = EtatConnexion.CONNEXION_ADMINISTRATEUR;
-        } else {
-            this.etatConnexion = EtatConnexion.CONNEXION_CLIENT;
-        }
+        this.adminConnecte = null;
+        this.etatConnexion = EtatConnexion.CONNEXION_CLIENT;
         
         // Fermer la fenêtre de connexion
         loginView.setVisible(false);
@@ -198,6 +224,7 @@ public class LoginController {
      */
     public void deconnecter() {
         this.clientConnecte = null;
+        this.adminConnecte = null;
         this.etatConnexion = EtatConnexion.NON_CONNECTE;
         notifierChangementEtat();
     }
@@ -225,7 +252,7 @@ public class LoginController {
      */
     private void notifierChangementEtat() {
         for (LoginStateListener listener : listeners) {
-            listener.onLoginStateChanged(etatConnexion, clientConnecte);
+            listener.onLoginStateChanged(etatConnexion, clientConnecte, adminConnecte);
         }
     }
     
@@ -243,6 +270,14 @@ public class LoginController {
      */
     public Client getClientConnecte() {
         return clientConnecte;
+    }
+    
+    /**
+     * Retourne l'administrateur actuellement connecté
+     * @return L'administrateur connecté ou null si aucun administrateur n'est connecté
+     */
+    public Admin getAdminConnecte() {
+        return adminConnecte;
     }
     
     /**
