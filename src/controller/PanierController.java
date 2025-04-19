@@ -86,25 +86,73 @@ public class PanierController implements PanierListener, ArticleClickListener {
             panier = commandeDAO.creer(clientConnecte.getIdClient());
         }
 
-        // Déterminer le prix à appliquer (unitaire ou vrac)
-        int prixApplique = (quantite >= article.getQuantiteVrac()) 
-            ? (int)article.getPrixVrac() 
-            : (int)article.getPrixUnitaire();
+        // Vérifier si l'article est déjà dans le panier
+        LigneCommande ligneExistante = null;
+        List<LigneCommande> lignesCommande = ligneCommandeDAO.getByCommandeId(panier.getIdCommande());
+        for (LigneCommande ligne : lignesCommande) {
+            if (ligne.getIdArticle() == article.getIdArticle()) {
+                ligneExistante = ligne;
+                break;
+            }
+        }
 
-        // Créer la ligne de commande
-        LigneCommande ligneCommande = new LigneCommande(
-            panier.getIdCommande(),
-            article,
-            quantite,
-            prixApplique,
-            0  // Pas de remise par défaut
-        );
+        // Calculer la nouvelle quantité totale
+        int nouvelleQuantite = quantite;
+        if (ligneExistante != null) {
+            nouvelleQuantite += ligneExistante.getQuantite();
+        }
+        
+        // Calculer le prix moyen pondéré
+        double prixUnitaire = article.getPrixUnitaire();
+        double prixVrac = article.getPrixVrac();
+        int quantiteVrac = article.getQuantiteVrac();
+        
+        int prixApplique;
+        
+        if (nouvelleQuantite >= quantiteVrac) {
+            // Calculer combien de lots complets de vrac nous avons
+            int nombreLotsVrac = nouvelleQuantite / quantiteVrac;
+            int uniteRestantes = nouvelleQuantite % quantiteVrac;
+            
+            // Calculer le prix total (lots en vrac + unités restantes au prix normal)
+            double prixTotal = (nombreLotsVrac * quantiteVrac * prixVrac) + (uniteRestantes * prixUnitaire);
+            
+            // Calculer le prix moyen par unité
+            prixApplique = (int) Math.round(prixTotal / nouvelleQuantite);
+            
+            System.out.println("Prix appliqué: " + prixApplique + " (moyenne pondérée de " + 
+                               nombreLotsVrac + " lots de " + quantiteVrac + " au prix de " + prixVrac + 
+                               " et " + uniteRestantes + " unités au prix de " + prixUnitaire + ")");
+        } else {
+            // Appliquer le prix unitaire standard
+            prixApplique = (int) prixUnitaire;
+        }
 
-        // Ajouter la ligne au panier
-        ligneCommandeDAO.ajouter(ligneCommande);
+        if (ligneExistante != null) {
+            // Mettre à jour la ligne existante
+            ligneExistante.setQuantite(nouvelleQuantite);
+            ligneExistante.setPrixApplique(prixApplique);
+            ligneCommandeDAO.update(ligneExistante);
+            
+            // Mettre à jour le total de la commande
+            panier.ajouterLigneCommande(ligneExistante);
+        } else {
+            // Créer une nouvelle ligne de commande
+            LigneCommande nouvelleLigne = new LigneCommande(
+                panier.getIdCommande(),
+                article,
+                quantite,
+                prixApplique,
+                0  // Pas de remise par défaut
+            );
 
-        // Mettre à jour le total de la commande
-        panier.ajouterLigneCommande(ligneCommande);
+            // Ajouter la ligne au panier
+            ligneCommandeDAO.ajouter(nouvelleLigne);
+
+            // Mettre à jour le total de la commande
+            panier.ajouterLigneCommande(nouvelleLigne);
+        }
+        
         commandeDAO.update(panier);
 
         // Mettre à jour le stock de l'article
@@ -112,8 +160,8 @@ public class PanierController implements PanierListener, ArticleClickListener {
         article.setStock(article.getStock() - quantite);
 
         JOptionPane.showMessageDialog(null, 
-            quantite + " x " + article.getNom() + " ajouté(s) au panier", 
-            "Ajout au panier", 
+            "Article ajouté au panier avec succès !", 
+            "Succès", 
             JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -185,12 +233,14 @@ public class PanierController implements PanierListener, ArticleClickListener {
     // Supprimer un article du panier
     public void supprimerDuPanier(int idArticle) {
         if (clientConnecte == null) {
+            System.out.println("Impossible de supprimer l'article : client non connecté");
             return;
         }
 
         // Récupérer le panier du client
         Commande panier = commandeDAO.getPanierByClientId(clientConnecte.getIdClient());
         if (panier == null) {
+            System.out.println("Impossible de supprimer l'article : panier non trouvé");
             return;
         }
 
@@ -205,34 +255,73 @@ public class PanierController implements PanierListener, ArticleClickListener {
         }
 
         if (ligneASupprimer != null) {
-            // Remettre en stock
-            Article article = ligneASupprimer.getArticle();
-            if (article != null) {
-                articleDAO.updateStock(article.getIdArticle(), article.getStock() + ligneASupprimer.getQuantite());
-                article.setStock(article.getStock() + ligneASupprimer.getQuantite());
-            }
-
-            // Supprimer la ligne de commande
-            ligneCommandeDAO.delete(panier.getIdCommande(), idArticle);
-            panier.supprimerLigneCommande(ligneASupprimer);
-            
-            // Mettre à jour le total de la commande
-            commandeDAO.update(panier);
-
-            // Rafraîchir l'affichage
-            if (panier.getLignesCommande().isEmpty()) {
-                // Retourner à la vue des articles si le panier est vide
-                if (mainPanel != null) {
-                    CardLayout cl = (CardLayout) mainPanel.getLayout();
-                    cl.show(mainPanel, "articles");
+            try {
+                // Récupérer l'article complet si nécessaire
+                Article article = ligneASupprimer.getArticle();
+                if (article == null) {
+                    // Si l'article n'est pas chargé dans la ligne de commande, le récupérer depuis la base de données
+                    article = articleDAO.getById(idArticle);
+                    if (article == null) {
+                        System.out.println("Avertissement : Article non trouvé dans la base de données (ID: " + idArticle + ")");
+                    }
                 }
+                
+                if (article != null) {
+                    int quantiteARestorer = ligneASupprimer.getQuantite();
+                    int stockActuel = article.getStock();
+                    int nouveauStock = stockActuel + quantiteARestorer;
+                    
+                    // Mettre à jour le stock dans la base de données
+                    boolean stockMisAJour = articleDAO.updateStock(article.getIdArticle(), nouveauStock);
+                    if (stockMisAJour) {
+                        // Mettre à jour le stock dans l'objet article en mémoire
+                        article.setStock(nouveauStock);
+                        System.out.println("Stock mis à jour pour l'article " + article.getNom() + 
+                                           " (ID: " + article.getIdArticle() + ") : " + 
+                                           stockActuel + " -> " + nouveauStock + 
+                                           " (+" + quantiteARestorer + ")");
+                    } else {
+                        System.out.println("Erreur lors de la mise à jour du stock dans la base de données");
+                    }
+                }
+                
+                // Supprimer la ligne de commande
+                ligneCommandeDAO.delete(panier.getIdCommande(), idArticle);
+                panier.supprimerLigneCommande(ligneASupprimer);
+                
+                // Mettre à jour le total de la commande
+                commandeDAO.update(panier);
+                
+                System.out.println("Article supprimé du panier avec succès");
+                
+                // Rafraîchir l'affichage
+                if (panier.getLignesCommande().isEmpty()) {
+                    // Retourner à la landing page si le panier est vide
+                    if (mainPanel != null) {
+                        CardLayout cl = (CardLayout) mainPanel.getLayout();
+                        cl.show(mainPanel, "landing");
+                        
+                        // Forcer le rafraîchissement
+                        mainPanel.revalidate();
+                        mainPanel.repaint();
+                        System.out.println("Retour à la landing page car le panier est vide");
+                    }
+                    JOptionPane.showMessageDialog(null, 
+                        "Votre panier est maintenant vide", 
+                        "Panier vide", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    panierView.afficherPanier(panier);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(null, 
-                    "Votre panier est maintenant vide", 
-                    "Panier vide", 
-                    JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                panierView.afficherPanier(panier);
+                    "Une erreur est survenue lors de la suppression de l'article du panier", 
+                    "Erreur", 
+                    JOptionPane.ERROR_MESSAGE);
             }
+        } else {
+            System.out.println("Article non trouvé dans le panier (ID: " + idArticle + ")");
         }
     }
 

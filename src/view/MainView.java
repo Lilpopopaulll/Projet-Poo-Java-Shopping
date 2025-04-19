@@ -92,6 +92,12 @@ public class MainView extends JFrame {
         historiqueButton.setFocusPainted(false);
         historiqueButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         historiqueButton.setVisible(false); // Caché par défaut, visible seulement quand connecté
+        historiqueButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                historiqueController.afficherHistorique();
+            }
+        });
         
         // Bouton connexion
         loginButton = new JButton("Se connecter");
@@ -155,14 +161,6 @@ public class MainView extends JFrame {
             }
         });
         
-        // Configurer le bouton d'historique
-        historiqueButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                historiqueController.afficherHistorique();
-            }
-        });
-
         // Appeler l'affichage via le contrôleur
         articleController.initialiser(); // C'est ça qui fait le lien complet
 

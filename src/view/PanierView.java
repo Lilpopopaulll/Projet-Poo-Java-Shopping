@@ -87,13 +87,84 @@ public class PanierView extends JPanel {
         NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         
         // Ajouter chaque ligne de commande à la table
+        double totalEconomies = 0.0;
         for (LigneCommande ligne : panier.getLignesCommande()) {
             String nomArticle = ligne.getArticle() != null ? ligne.getArticle().getNom() : "Article inconnu";
-            String prixUnitaire = formatPrix.format(ligne.getPrixApplique() / 100.0); // Conversion en euros
-            int quantite = ligne.getQuantite();
-            String sousTotal = formatPrix.format(ligne.getSousTotal() / 100.0); // Conversion en euros
             
-            // Créer un bouton de suppression
+            // Informations sur les prix
+            double prixUnitaireStandard = ligne.getArticle().getPrixUnitaire() / 100.0;
+            double prixUnitaireVrac = ligne.getArticle().getPrixVrac() / 100.0;
+            double prixUnitaireApplique = ligne.getPrixApplique() / 100.0;
+            int quantite = ligne.getQuantite();
+            double sousTotal = ligne.getSousTotal() / 100.0;
+            int quantiteVrac = ligne.getArticle().getQuantiteVrac();
+            
+            // Calcul des économies et détermination si le prix mixte est appliqué
+            boolean prixMixteApplique = quantite >= quantiteVrac;
+            double economie = 0.0;
+            
+            if (prixMixteApplique) {
+                // Calcul des économies réalisées avec le prix mixte
+                int nombreLotsVrac = quantite / quantiteVrac;
+                int uniteRestantes = quantite % quantiteVrac;
+                
+                // Prix total si tout était au prix unitaire standard
+                double prixTotalStandard = quantite * prixUnitaireStandard;
+                
+                // Prix total avec la répartition vrac/standard
+                double prixTotalMixte = (nombreLotsVrac * quantiteVrac * prixUnitaireVrac) + 
+                                        (uniteRestantes * prixUnitaireStandard);
+                
+                economie = prixTotalStandard - prixTotalMixte;
+                totalEconomies += economie;
+            }
+            
+            // Création du composant pour afficher le prix
+            JPanel prixPanel = new JPanel();
+            prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.Y_AXIS));
+            prixPanel.setBackground(Color.WHITE);
+            
+            JLabel prixLabel = new JLabel(formatPrix.format(prixUnitaireApplique));
+            prixLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            prixLabel.setForeground(Color.decode("#212529"));
+            prixPanel.add(prixLabel);
+            
+            if (prixMixteApplique) {
+                // Afficher le détail du calcul du prix mixte
+                int nombreLotsVrac = quantite / quantiteVrac;
+                int uniteRestantes = quantite % quantiteVrac;
+                
+                JLabel detailPrixLabel = new JLabel("<html><small>" + 
+                    nombreLotsVrac + " lot" + (nombreLotsVrac > 1 ? "s" : "") + " de " + quantiteVrac + 
+                    " à " + formatPrix.format(prixUnitaireVrac) + "/unité" +
+                    (uniteRestantes > 0 ? " + " + uniteRestantes + " à " + formatPrix.format(prixUnitaireStandard) : "") +
+                    "</small></html>");
+                detailPrixLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+                detailPrixLabel.setForeground(Color.decode("#6c757d"));
+                prixPanel.add(detailPrixLabel);
+                
+                JLabel economieLabel = new JLabel("<html><font color='#28a745'>Prix en vrac appliqué</font></html>");
+                economieLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+                prixPanel.add(economieLabel);
+            }
+            
+            // Création du composant pour afficher le sous-total
+            JPanel sousTotalPanel = new JPanel();
+            sousTotalPanel.setLayout(new BoxLayout(sousTotalPanel, BoxLayout.Y_AXIS));
+            sousTotalPanel.setBackground(Color.WHITE);
+            
+            JLabel sousTotalLabel = new JLabel(formatPrix.format(sousTotal));
+            sousTotalLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            sousTotalLabel.setForeground(Color.decode("#212529"));
+            sousTotalPanel.add(sousTotalLabel);
+            
+            if (prixMixteApplique) {
+                JLabel economieDetailLabel = new JLabel("<html><font color='#28a745'>Économie: " + formatPrix.format(economie) + "</font></html>");
+                economieDetailLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+                sousTotalPanel.add(economieDetailLabel);
+            }
+            
+            // Bouton de suppression
             JButton supprimerButton = new JButton("Supprimer");
             supprimerButton.setActionCommand(String.valueOf(ligne.getIdArticle()));
             if (suppressionListener != null) {
@@ -101,73 +172,85 @@ public class PanierView extends JPanel {
             }
             
             // Ajouter la ligne à la table
-            tableModel.addRow(new Object[]{nomArticle, prixUnitaire, quantite, sousTotal, supprimerButton});
+            tableModel.addRow(new Object[]{
+                nomArticle,
+                prixPanel,
+                quantite,
+                sousTotalPanel,
+                supprimerButton
+            });
         }
         
-        // Configurer le rendu des boutons dans la table
-        panierTable.getColumn("Actions").setCellRenderer(new ButtonRenderer());
-        panierTable.getColumn("Actions").setCellEditor(new ButtonEditor(new JCheckBox()));
+        // Configurer les renderers et editors pour les colonnes
+        panierTable.getColumnModel().getColumn(1).setCellRenderer(new PanelRenderer());
+        panierTable.getColumnModel().getColumn(3).setCellRenderer(new PanelRenderer());
+        panierTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
+        panierTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox()));
         
-        // Ajout de la table dans un JScrollPane
-        JScrollPane scrollPane = new JScrollPane(panierTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        
-        // Panneau pour le total et le bouton de validation
+        // Panel pour le total et le bouton de validation
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(Color.WHITE);
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         
-        // Panneau pour le total
-        JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        totalPanel.setBackground(Color.WHITE);
+        // Panel pour le total avec style amélioré
+        JPanel totalPanel = new JPanel();
+        totalPanel.setLayout(new BoxLayout(totalPanel, BoxLayout.Y_AXIS));
+        totalPanel.setBackground(Color.decode("#f8f9fa"));
+        totalPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#dee2e6")),
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
         
-        totalLabel = new JLabel("Total : " + formatPrix.format(panier.getTotal() / 100.0));
+        // Affichage du total
+        totalLabel = new JLabel("Total: " + formatPrix.format(panier.getTotal() / 100.0));
         totalLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        totalLabel.setForeground(Color.decode("#212529"));
+        totalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         totalPanel.add(totalLabel);
         
-        // Panneau pour le bouton de validation
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        // Affichage des économies totales si applicable
+        if (totalEconomies > 0) {
+            JLabel economiesLabel = new JLabel("Économies réalisées: " + formatPrix.format(totalEconomies));
+            economiesLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            economiesLabel.setForeground(Color.decode("#28a745"));
+            economiesLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            economiesLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+            totalPanel.add(economiesLabel);
+        }
         
-        validerButton = new JButton("Valider la commande");
+        bottomPanel.add(totalPanel, BorderLayout.WEST);
+        
+        // Bouton de validation avec style amélioré
+        validerButton = new JButton("Valider ma commande");
         validerButton.setFont(new Font("Arial", Font.BOLD, 16));
-        validerButton.setBackground(Color.decode("#28a745"));
         validerButton.setForeground(Color.WHITE);
+        validerButton.setBackground(Color.decode("#28a745"));
         validerButton.setFocusPainted(false);
-        validerButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#28a745")),
-                BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
+        validerButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
         validerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Ajouter un ActionCommand pour identifier le bouton
-        validerButton.setActionCommand("valider_commande");
+        // Désactiver le bouton si le panier est vide
+        validerButton.setEnabled(!panier.getLignesCommande().isEmpty());
         
-        buttonPanel.add(validerButton);
+        bottomPanel.add(validerButton, BorderLayout.EAST);
         
-        bottomPanel.add(totalPanel, BorderLayout.NORTH);
-        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+        // Assembler les composants
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(title, BorderLayout.NORTH);
         
-        // Ajouter les composants au panel principal
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Color.WHITE);
-        headerPanel.add(topPanel, BorderLayout.NORTH);
-        headerPanel.add(title, BorderLayout.CENTER);
+        // Créer le panel de la table avec défilement
+        JScrollPane tableScrollPane = new JScrollPane(panierTable);
+        tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        tableScrollPane.getViewport().setBackground(Color.WHITE);
         
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(tableScrollPane, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
         
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(Color.WHITE);
-        contentPanel.add(scrollPane, BorderLayout.CENTER);
-        contentPanel.add(bottomPanel, BorderLayout.SOUTH);
-        
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
-        
-        // Ajouter le panel principal avec scrolling
+        // Créer un scroll pane pour le panel principal
         JScrollPane mainScrollPane = new JScrollPane(mainPanel);
-        mainScrollPane.setBorder(null);
-        mainScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        mainScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        mainScrollPane.getViewport().setBackground(Color.WHITE);
+        mainScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         mainScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
         add(mainScrollPane, BorderLayout.CENTER);
@@ -269,6 +352,23 @@ public class PanierView extends JPanel {
         public boolean stopCellEditing() {
             isPushed = false;
             return super.stopCellEditing();
+        }
+    }
+    
+    // Classe pour rendre les panels dans la table
+    class PanelRenderer implements javax.swing.table.TableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            if (value instanceof JPanel) {
+                JPanel panel = (JPanel) value;
+                if (isSelected) {
+                    panel.setBackground(table.getSelectionBackground());
+                } else {
+                    panel.setBackground(table.getBackground());
+                }
+                return panel;
+            }
+            return new JLabel(value == null ? "" : value.toString());
         }
     }
 }

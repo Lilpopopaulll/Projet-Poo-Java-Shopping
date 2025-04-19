@@ -97,51 +97,56 @@ public class ArticleDetailView extends JPanel {
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(Color.WHITE);
-        infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 40, 0, 0));
-        infoPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 0, 0));
 
         // Prix avec style amélioré
-        JLabel prixLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
-        prixLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        JLabel prixLabel = new JLabel("Prix unitaire: " + String.format("%.2f €", article.getPrixUnitaire() / 100.0));
+        prixLabel.setFont(new Font("Arial", Font.BOLD, 20));
         prixLabel.setForeground(Color.decode("#212529"));
         prixLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        prixLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-
-        // Stock disponible
-        JLabel stockLabel = new JLabel("Stock disponible: " + article.getStock() + " unités");
-        stockLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        stockLabel.setForeground(Color.decode("#495057"));
-        stockLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stockLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-
-        // Description du produit
-        JLabel descriptionTitle = new JLabel("Description");
-        descriptionTitle.setFont(new Font("Arial", Font.BOLD, 18));
-        descriptionTitle.setForeground(Color.decode("#343a40"));
-        descriptionTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        descriptionTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
-
-        JTextArea descriptionArea = new JTextArea();
-        descriptionArea.setText(article.getDescription() != null ? article.getDescription() : "Aucune description disponible.");
-        descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        descriptionArea.setForeground(Color.decode("#495057"));
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        descriptionArea.setEditable(false);
-        descriptionArea.setBackground(Color.WHITE);
-        descriptionArea.setAlignmentX(Component.LEFT_ALIGNMENT);
-        descriptionArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
-
-        // Bouton ajouter au panier
-        addToCartButton = new JButton("Ajouter au panier");
-        addToCartButton.setFont(new Font("Arial", Font.BOLD, 16));
-        addToCartButton.setForeground(Color.WHITE);
-        addToCartButton.setBackground(Color.decode("#007bff"));
-        addToCartButton.setFocusPainted(false);
-        addToCartButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
-        addToCartButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        addToCartButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        prixLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
         
+        // Informations sur le prix en vrac
+        JPanel vracPanel = new JPanel();
+        vracPanel.setLayout(new BoxLayout(vracPanel, BoxLayout.Y_AXIS));
+        vracPanel.setBackground(Color.decode("#f8f9fa"));
+        vracPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#dee2e6"), 1),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        vracPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        vracPanel.setMaximumSize(new Dimension(300, 100));
+        
+        JLabel vracTitleLabel = new JLabel("Offre spéciale en vrac :");
+        vracTitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        vracTitleLabel.setForeground(Color.decode("#28a745"));
+        vracTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel vracPriceLabel = new JLabel(String.format("%.2f € par unité à partir de %d unités", 
+                article.getPrixVrac() / 100.0, article.getQuantiteVrac()));
+        vracPriceLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        vracPriceLabel.setForeground(Color.decode("#212529"));
+        vracPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel economyLabel = new JLabel(String.format("Économisez %.2f € par unité", 
+                (article.getPrixUnitaire() - article.getPrixVrac()) / 100.0));
+        economyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        economyLabel.setForeground(Color.decode("#dc3545"));
+        economyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        vracPanel.add(vracTitleLabel);
+        vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        vracPanel.add(vracPriceLabel);
+        vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        vracPanel.add(economyLabel);
+        
+        // Stock avec style
+        JLabel stockLabel = new JLabel("En stock: " + article.getStock() + " unités");
+        stockLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        stockLabel.setForeground(article.getStock() > 0 ? Color.decode("#28a745") : Color.decode("#dc3545"));
+        stockLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stockLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+
         // Spinner pour la quantité
         JPanel quantityPanel = new JPanel();
         quantityPanel.setLayout(new BoxLayout(quantityPanel, BoxLayout.X_AXIS));
@@ -162,8 +167,38 @@ public class ArticleDetailView extends JPanel {
         quantityPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         quantityPanel.add(quantitySpinner);
         
+        // Bouton ajouter au panier
+        addToCartButton = new JButton("Ajouter au panier");
+        addToCartButton.setFont(new Font("Arial", Font.BOLD, 16));
+        addToCartButton.setForeground(Color.WHITE);
+        addToCartButton.setBackground(Color.decode("#007bff"));
+        addToCartButton.setFocusPainted(false);
+        addToCartButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+        addToCartButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addToCartButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Description du produit
+        JLabel descriptionTitle = new JLabel("Description");
+        descriptionTitle.setFont(new Font("Arial", Font.BOLD, 18));
+        descriptionTitle.setForeground(Color.decode("#343a40"));
+        descriptionTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        descriptionTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+
+        JTextArea descriptionArea = new JTextArea();
+        descriptionArea.setText(article.getDescription() != null ? article.getDescription() : "Aucune description disponible.");
+        descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        descriptionArea.setForeground(Color.decode("#495057"));
+        descriptionArea.setLineWrap(true);
+        descriptionArea.setWrapStyleWord(true);
+        descriptionArea.setEditable(false);
+        descriptionArea.setBackground(Color.WHITE);
+        descriptionArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+        descriptionArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+
         // Ajouter les composants au panel d'informations
         infoPanel.add(prixLabel);
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        infoPanel.add(vracPanel);
         infoPanel.add(stockLabel);
         infoPanel.add(quantityPanel);
         infoPanel.add(addToCartButton);
