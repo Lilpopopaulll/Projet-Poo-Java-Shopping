@@ -111,6 +111,11 @@ public class ValidationCommandeView extends JPanel {
         validerButton = new JButton("Valider le paiement");
         styliserBouton(validerButton, new Color(40, 167, 69)); // Vert
         validerButton.setVisible(false); // Caché jusqu'à la dernière étape
+        validerButton.addActionListener(e -> {
+            if (validerPaiement() && validerPaiementListener != null) {
+                validerPaiementListener.actionPerformed(e);
+            }
+        });
         
         // Ajouter les boutons au panneau
         boutonPanel.add(annulerButton);
@@ -127,12 +132,6 @@ public class ValidationCommandeView extends JPanel {
         
         precedentButton.addActionListener(e -> etapePrecedente());
         suivantButton.addActionListener(e -> etapeSuivante());
-        
-        validerButton.addActionListener(e -> {
-            if (validerPaiementListener != null) {
-                validerPaiementListener.actionPerformed(e);
-            }
-        });
         
         // Assembler le panneau principal
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -417,11 +416,13 @@ public class ValidationCommandeView extends JPanel {
                 }
                 break;
             case ETAPE_LIVRAISON:
-                etapeActuelle = ETAPE_PAIEMENT;
-                cardLayout.show(cardPanel, "paiement");
-                etapeLabel.setText("Étape 3/3 : Paiement");
-                suivantButton.setVisible(false);
-                validerButton.setVisible(true);
+                if (validerLivraison()) {
+                    etapeActuelle = ETAPE_PAIEMENT;
+                    cardLayout.show(cardPanel, "paiement");
+                    etapeLabel.setText("Étape 3/3 : Paiement");
+                    suivantButton.setVisible(false);
+                    validerButton.setVisible(true);
+                }
                 break;
         }
     }
@@ -462,6 +463,58 @@ public class ValidationCommandeView extends JPanel {
             JOptionPane.showMessageDialog(this, "Veuillez saisir votre pays", "Champ manquant", JOptionPane.WARNING_MESSAGE);
             return false;
         }
+        return true;
+    }
+    
+    private boolean validerLivraison() {
+        // Vérifier que le mode de livraison est sélectionné
+        if (modeLivraisonCombo.getSelectedIndex() == -1) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un mode de livraison", "Sélection requise", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+    
+    private boolean validerPaiement() {
+        // Vérifier que tous les champs de paiement sont remplis
+        if (numeroCarteField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Veuillez saisir votre numéro de carte", "Champ manquant", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        if (nomCarteField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Veuillez saisir le nom sur la carte", "Champ manquant", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        if (expirationField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Veuillez saisir la date d'expiration", "Champ manquant", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        if (cvcField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Veuillez saisir le code CVC", "Champ manquant", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        // Validation du format de la date d'expiration (MM/AA)
+        String expiration = expirationField.getText().trim();
+        if (!expiration.matches("\\d{2}/\\d{2}")) {
+            JOptionPane.showMessageDialog(this, "Le format de la date d'expiration doit être MM/AA", "Format incorrect", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        // Validation du format du CVC (3 chiffres)
+        String cvc = cvcField.getText().trim();
+        if (!cvc.matches("\\d{3}")) {
+            JOptionPane.showMessageDialog(this, "Le CVC doit contenir 3 chiffres", "Format incorrect", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        // Validation du numéro de carte (16 chiffres, peut contenir des espaces)
+        String numeroCarte = numeroCarteField.getText().replaceAll("\\s", "").trim();
+        if (!numeroCarte.matches("\\d{16}")) {
+            JOptionPane.showMessageDialog(this, "Le numéro de carte doit contenir 16 chiffres", "Format incorrect", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
         return true;
     }
     

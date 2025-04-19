@@ -58,9 +58,20 @@ public class Commande {
     public String getPanier() {
         return panier;
     }
-
+    
     public void setPanier(String panier) {
         this.panier = panier;
+    }
+    
+    // Méthode pour obtenir le statut de la commande
+    public String getStatut() {
+        if ("panier".equals(panier)) {
+            return "En cours";
+        } else if ("validee".equals(panier)) {
+            return "Validée";
+        } else {
+            return panier; // Retourne la valeur brute si ce n'est ni "panier" ni "validee"
+        }
     }
 
     public List<LigneCommande> getLignesCommande() {

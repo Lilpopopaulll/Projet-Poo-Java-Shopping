@@ -136,6 +136,33 @@ public class CommandeDAO {
         return commandes;
     }
 
+    // Récupérer toutes les commandes validées d'un client
+    public List<Commande> getCommandesValideesByClientId(int idClient) {
+        List<Commande> commandes = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM commande WHERE idClient = ? AND panier = 'validee' ORDER BY dateCommande DESC"
+            );
+            stmt.setInt(1, idClient);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Commande commande = new Commande(
+                    rs.getInt("idCommande"),
+                    rs.getInt("idClient"),
+                    rs.getDate("dateCommande"),
+                    rs.getInt("total"),
+                    rs.getString("panier")
+                );
+                
+                commandes.add(commande);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return commandes;
+    }
+
     // Mettre à jour une commande
     public void update(Commande commande) {
         try {
@@ -152,6 +179,16 @@ public class CommandeDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // Récupérer une commande complète avec toutes ses lignes
+    public Commande getCommandeComplete(int idCommande) {
+        Commande commande = getById(idCommande);
+        if (commande != null) {
+            // Charger les lignes de commande associées avec les détails des articles
+            commande.setLignesCommande(ligneCommandeDAO.getDetailsByCommandeId(idCommande));
+        }
+        return commande;
     }
 
     // Valider un panier (changer son statut)

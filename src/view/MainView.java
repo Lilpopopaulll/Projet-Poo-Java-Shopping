@@ -4,6 +4,7 @@ import controller.ArticleController;
 import controller.LoginController;
 import controller.LoginStateListener;
 import controller.PanierController;
+import controller.HistoriqueController;
 import model.Client;
 import model.EtatConnexion;
 
@@ -21,8 +22,10 @@ public class MainView extends JFrame {
     private JPanel mainPanel;
     private JButton loginButton;
     private JButton panierButton;
+    private JButton historiqueButton;
     private LoginController loginController;
     private PanierController panierController;
+    private HistoriqueController historiqueController;
     private Client clientConnecte;
     private JLabel userLabel;
     private JPanel buttonPanel;
@@ -81,6 +84,15 @@ public class MainView extends JFrame {
         panierButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         panierButton.setVisible(false); // Caché par défaut, visible seulement quand connecté
         
+        // Bouton historique
+        historiqueButton = new JButton("Historique");
+        historiqueButton.setBackground(new Color(23, 162, 184)); // Bleu clair pour l'historique
+        historiqueButton.setForeground(Color.WHITE);
+        historiqueButton.setFont(new Font("Arial", Font.BOLD, 14));
+        historiqueButton.setFocusPainted(false);
+        historiqueButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        historiqueButton.setVisible(false); // Caché par défaut, visible seulement quand connecté
+        
         // Bouton connexion
         loginButton = new JButton("Se connecter");
         loginButton.setBackground(new Color(50, 150, 255));
@@ -97,6 +109,7 @@ public class MainView extends JFrame {
         
         buttonPanel.add(userLabel);
         buttonPanel.add(panierButton);
+        buttonPanel.add(historiqueButton);
         buttonPanel.add(loginButton);
         topPanel.add(buttonPanel, BorderLayout.EAST);
         
@@ -115,6 +128,7 @@ public class MainView extends JFrame {
         // Initialiser les contrôleurs
         initLoginController(connection);
         initPanierController(connection, articleController, mainPanel);
+        initHistoriqueController(connection, articleController, mainPanel);
         
         // Configurer le bouton de connexion
         loginButton.addActionListener(new ActionListener() {
@@ -138,6 +152,14 @@ public class MainView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 panierController.afficherPanier();
+            }
+        });
+        
+        // Configurer le bouton d'historique
+        historiqueButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                historiqueController.afficherHistorique();
             }
         });
 
@@ -202,26 +224,35 @@ public class MainView extends JFrame {
         panierController = new PanierController(connection, articleController, mainPanel);
     }
     
+    private void initHistoriqueController(Connection connection, ArticleController articleController, JPanel mainPanel) {
+        historiqueController = new HistoriqueController(connection, mainPanel);
+        historiqueController.setParentClickListener(articleController);
+    }
+    
     private void mettreAJourBoutonConnexion(EtatConnexion etatConnexion) {
         if (etatConnexion == EtatConnexion.NON_CONNECTE) {
             // État déconnecté
             userLabel.setVisible(false);
             panierButton.setVisible(false);
+            historiqueButton.setVisible(false);
             loginButton.setText("Se connecter");
             loginButton.setBackground(new Color(50, 150, 255));
             
             // Mettre à jour le contrôleur de panier
             panierController.setClientConnecte(null);
+            historiqueController.setClientConnecte(null);
         } else {
             // État connecté
             userLabel.setText("Bonjour, " + clientConnecte.getPrenom());
             userLabel.setVisible(true);
             panierButton.setVisible(true);
+            historiqueButton.setVisible(true);
             loginButton.setText("Déconnexion");
             loginButton.setBackground(new Color(220, 53, 69)); // Rouge pour déconnexion
             
             // Mettre à jour le contrôleur de panier
             panierController.setClientConnecte(clientConnecte);
+            historiqueController.setClientConnecte(clientConnecte);
         }
         
         // Rafraîchir l'affichage

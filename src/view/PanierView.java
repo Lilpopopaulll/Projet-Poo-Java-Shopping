@@ -140,14 +140,22 @@ public class PanierView extends JPanel {
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
         validerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Ajouter un ActionCommand pour identifier le bouton
+        validerButton.setActionCommand("valider_commande");
+        
         buttonPanel.add(validerButton);
         
         bottomPanel.add(totalPanel, BorderLayout.NORTH);
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         
         // Ajouter les composants au panel principal
-        mainPanel.add(topPanel, BorderLayout.NORTH);
-        mainPanel.add(title, BorderLayout.NORTH);
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.WHITE);
+        headerPanel.add(topPanel, BorderLayout.NORTH);
+        headerPanel.add(title, BorderLayout.CENTER);
+        
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
         
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(Color.WHITE);
@@ -181,6 +189,9 @@ public class PanierView extends JPanel {
             }
             // Ajouter le nouvel écouteur
             validerButton.addActionListener(listener);
+            System.out.println("Écouteur ajouté au bouton de validation");
+        } else {
+            System.out.println("Erreur: validerButton est null dans setValidationListener");
         }
     }
     

@@ -109,6 +109,50 @@ public class LigneCommandeDAO {
         return lignesCommande;
     }
 
+    // Récupérer toutes les lignes de commande avec détails pour une commande donnée
+    public List<LigneCommande> getDetailsByCommandeId(int idCommande) {
+        List<LigneCommande> lignesCommande = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "SELECT lc.*, a.nom, a.description, a.prixUnitaire, a.prixVrac, a.quantiteVrac, a.stock " +
+                "FROM lignecommande lc " +
+                "JOIN article a ON lc.idArticle = a.idArticle " +
+                "WHERE lc.idCommande = ?"
+            );
+            stmt.setInt(1, idCommande);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                LigneCommande ligneCommande = new LigneCommande(
+                    rs.getInt("idCommande"),
+                    rs.getInt("idArticle"),
+                    rs.getInt("quantité"),
+                    rs.getInt("prixAppliqué"),
+                    rs.getInt("remiseAppliqué")
+                );
+                
+                // Créer l'article avec les données de la requête
+                Article article = new Article(
+                    rs.getInt("idArticle"),
+                    rs.getString("nom"),
+                    "", // marque (non disponible dans la requête)
+                    "", // urlImage (non disponible dans la requête)
+                    rs.getDouble("prixUnitaire"),
+                    rs.getDouble("prixVrac"),
+                    rs.getInt("quantiteVrac"),
+                    rs.getInt("stock"),
+                    rs.getString("description")
+                );
+                
+                ligneCommande.setArticle(article);
+                lignesCommande.add(ligneCommande);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lignesCommande;
+    }
+
     // Mettre à jour une ligne de commande
     public void update(LigneCommande ligneCommande) {
         try {

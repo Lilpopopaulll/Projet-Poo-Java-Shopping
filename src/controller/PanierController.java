@@ -121,29 +121,38 @@ public class PanierController implements PanierListener, ArticleClickListener {
     public void afficherPanier() {
         if (clientConnecte == null) {
             JOptionPane.showMessageDialog(null, 
-                "Veuillez vous connecter pour voir votre panier", 
+                "Veuillez vous connecter pour accéder à votre panier", 
                 "Connexion requise", 
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        
         // Récupérer le panier du client
         Commande panier = commandeDAO.getPanierByClientId(clientConnecte.getIdClient());
+        
+        // Si le panier n'existe pas ou est vide, afficher un message
         if (panier == null || panier.getLignesCommande().isEmpty()) {
             JOptionPane.showMessageDialog(null, 
                 "Votre panier est vide", 
                 "Panier vide", 
                 JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        // Afficher les articles du panier
-        panierView.afficherPanier(panier);
-        
-        // Afficher la vue du panier
-        if (mainPanel != null) {
-            CardLayout cl = (CardLayout) mainPanel.getLayout();
-            cl.show(mainPanel, "panier");
+        } else {
+            // Afficher le panier
+            panierView.afficherPanier(panier);
+            
+            // Reconfigurer les écouteurs après chaque affichage du panier
+            configurerPanierView();
+            
+            // Afficher la vue du panier
+            if (mainPanel != null) {
+                CardLayout cl = (CardLayout) mainPanel.getLayout();
+                cl.show(mainPanel, "panier");
+                
+                // Forcer le rafraîchissement
+                mainPanel.revalidate();
+                mainPanel.repaint();
+                System.out.println("Panier affiché");
+            }
         }
     }
 
@@ -162,12 +171,15 @@ public class PanierController implements PanierListener, ArticleClickListener {
         panierView.setValidationListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("Clic sur le bouton Valider la commande détecté");
                 validerPanier();
             }
         });
         
         // Configurer l'écouteur pour le bouton de retour
         panierView.setRetourListener(this);
+        
+        System.out.println("Écouteurs du panier configurés");
     }
 
     // Supprimer un article du panier
@@ -227,6 +239,10 @@ public class PanierController implements PanierListener, ArticleClickListener {
     // Valider le panier
     public void validerPanier() {
         if (clientConnecte == null) {
+            JOptionPane.showMessageDialog(null, 
+                "Veuillez vous connecter pour valider votre panier", 
+                "Connexion requise", 
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -260,9 +276,24 @@ public class PanierController implements PanierListener, ArticleClickListener {
         
         // Ajouter la vue de validation au mainPanel
         if (mainPanel != null) {
+            // S'assurer que la vue n'est pas déjà ajoutée
+            try {
+                mainPanel.remove(validationCommandeView);
+            } catch (Exception e) {
+                // Ignorer si la vue n'était pas déjà présente
+            }
+            
             mainPanel.add(validationCommandeView, "validation");
             CardLayout cl = (CardLayout) mainPanel.getLayout();
             cl.show(mainPanel, "validation");
+            
+            // Forcer le rafraîchissement
+            mainPanel.revalidate();
+            mainPanel.repaint();
+            
+            System.out.println("Passage à la vue de validation de commande");
+        } else {
+            System.out.println("Erreur: mainPanel est null");
         }
     }
     
@@ -275,12 +306,7 @@ public class PanierController implements PanierListener, ArticleClickListener {
             // Changer le statut du panier
             commandeDAO.validerPanier(panier.getIdCommande());
             
-            // Retourner à la vue des articles
-            if (mainPanel != null) {
-                CardLayout cl = (CardLayout) mainPanel.getLayout();
-                cl.show(mainPanel, "articles");
-            }
-            
+            // Afficher un message de confirmation
             JOptionPane.showMessageDialog(null, 
                 "Votre commande a été validée avec succès !\n" +
                 "Montant total : " + (panier.getTotal() / 100.0 + fraisLivraison) + " €\n" +
@@ -288,6 +314,17 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 "Mode de livraison : " + modeLivraison,
                 "Commande validée", 
                 JOptionPane.INFORMATION_MESSAGE);
+            
+            // Retourner à la page d'accueil (landing page)
+            if (mainPanel != null) {
+                CardLayout cl = (CardLayout) mainPanel.getLayout();
+                cl.show(mainPanel, "landing");
+                
+                // Forcer le rafraîchissement
+                mainPanel.revalidate();
+                mainPanel.repaint();
+                System.out.println("Retour à la page d'accueil après finalisation de la commande");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, 
