@@ -2,6 +2,8 @@ package model;
 
 import java.util.*;
 
+
+
 public class SalesData {
     private static final Map<String, Map<String, Integer>> detailedSales = new LinkedHashMap<>();
 
