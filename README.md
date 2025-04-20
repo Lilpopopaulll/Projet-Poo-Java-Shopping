@@ -10,7 +10,7 @@ L'application doit permettre au client de parcourir et chercher les articles dis
 - Les anciens clients auront déjà un identifiant et un mot de passe pour se connecter. Les anciens clients pourront parcourir l’historique de leurs commandes précédentes, avec leurs éventuelles notes. 
 
 Certains articles bénéficient d'une réduction lorsque vous en achetez suffisamment. Ces articles ont, en effet, deux prix : un prix d'article unique et un prix d'article en vrac pour une quantité en vrac.
-Lorsque vous calculez le prix d'un article en vrac à prix réduit, appliquez autant de quantité en vrac que possible, puis utilisez le prix de l'article unique pour les restes. Par exemple, l'utilisateur commande 12 « briquets » qui coûtent 0,50 € chacun, mais peuvent être achetés en gros (groupe de 10) pour 4 €. Les 10 premiers sont vendus à ce prix de gros (4 €) et les deux extras sont facturés au prix de l'article unique (0,50 € chacun) pour un total de 5 €.
+Lorsque vous calculez le prix d'un article en vrac à prix réduit, appliquez autant de quantité en vrac que possible, puis utilisez le prix de l'article unique pour les restes. Par exemple, l'utilisateur commande 12 « briquets » qui coûtent 0,50 € chacun, mais peuvent être achetés en gros (groupe de 10) pour 4 €. Les 10 premiers sont vendus à ce prix de gros (4 €) et les deux extras sont facturés au prix de l'article unique (0,50 € chacun) pour un total de 5 €. 
 
 Cette application doit être développée pour les deux types d'utilisateurs suivants avec un certain nombre de fonctionnalités pour chacun de ces utilisateurs :
 
