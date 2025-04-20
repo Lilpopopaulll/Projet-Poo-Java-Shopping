@@ -16,4 +16,5 @@ Cette application doit être développée pour les deux types d'utilisateurs sui
 
 1. Clients : acheter des articles, visualiser les articles commandés, calculer et visualiser la facture des articles achetés avec éventuelles remises, naviguer dans la disponibilité des articles, etc.
 2. Administrateurs de l’application : gérer l'inventaire des articles achetés par les clients, introduire diverses offres de rabais, maintenir les dossiers des clients, faire des statistiques sur les ventes, etc.**
+Nous avons egalement choisi le theme d'un magasin de vetements en lignes ( magasin de vetements haut de gammes proposant differentes marques selectionnées)
 
