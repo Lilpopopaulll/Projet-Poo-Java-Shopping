@@ -1,4 +1,4 @@
-read me
+read me                                              
 Projet de java 2025 ( creation d'un site web uniquement en java) 
 Nous avons choisi le theme du shopping on a donc differente contraintes 
 **Le but de ce thème "Shopping" du projet Java est d'écrire une application de panier d'achat qui permettra au client d'effectuer l'achat d’articles, avec remises possibles et facturation. L'application aidera également l'organisation commerciale deconserver et mettre à jour ses archives des ventes et des clients.
