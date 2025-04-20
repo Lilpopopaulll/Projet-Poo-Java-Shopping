@@ -1,0 +1,28 @@
+sur R1 :
+router RIP 
+version 2
+no auto-summary
+network 192.168.1.0
+network 192.168.2.0
+passive-interface gigabitEthernet 0/0
+default-information originate
+
+sur R2 :
+router RIP 
+version 2
+no auto-summary
+network 192.168.2.0
+network 192.168.3.0
+network 192.168.4.0
+passive-interface gigabitEthernet 0/0
+default-information originate
+
+
+sur R3 :
+router RIP 
+version 2
+no auto-summary
+network 192.168.4.0
+network 192.168.5.0
+passive-interface gigabitEthernet 0/0
+default-information originate
