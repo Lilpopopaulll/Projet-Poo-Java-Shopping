@@ -185,7 +185,7 @@ public class ArticleDetailView extends JPanel {
         
         if (article.getQuantiteVrac() > 0) {
             JLabel vracPriceLabel = new JLabel(String.format("%.2f € par unité à partir de %d unités", 
-                    article.getPrixVrac() / 100.0, article.getQuantiteVrac()));
+                    article.getPrixVrac(), article.getQuantiteVrac()));
             vracPriceLabel.setFont(new Font("Arial", Font.PLAIN, 14));
             vracPriceLabel.setForeground(Color.decode("#212529"));
             vracPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
