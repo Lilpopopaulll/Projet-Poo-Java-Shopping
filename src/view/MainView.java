@@ -6,6 +6,7 @@ import controller.LoginController;
 import controller.LoginStateListener;
 import controller.PanierController;
 import controller.HistoriqueController;
+import controller.MarqueController;
 import model.Admin;
 import model.Client;
 import model.EtatConnexion;
@@ -34,6 +35,7 @@ public class MainView extends JFrame {
     private JPanel buttonPanel;
     private AdminView adminView;
     private AdminController adminController;
+    private MarqueController marqueController;
 
     public MainView(Connection connection) {
         // Configuration de la fenêtre principale
@@ -74,6 +76,9 @@ public class MainView extends JFrame {
         
         // Configurer l'écouteur de clics sur les articles dans la landing page
         landingPageView.setArticleClickListener(articleController);
+        
+        // Initialiser le contrôleur de marques
+        initMarqueController(connection, articleController, mainPanel);
 
         // Ajouter le bouton de connexion en haut à droite
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -409,5 +414,20 @@ public class MainView extends JFrame {
         // Rafraîchir l'affichage
         buttonPanel.revalidate();
         buttonPanel.repaint();
+    }
+    
+    private void initMarqueController(Connection connection, ArticleController articleController, JPanel mainPanel) {
+        // Récupérer la vue des marques de la landing page
+        MarqueView marqueViewInLandingPage = landingPageView.getMarqueView();
+        
+        // Créer le contrôleur de marques en utilisant la vue existante
+        marqueController = new MarqueController(connection, mainPanel, marqueViewInLandingPage);
+        
+        // Configurer l'écouteur de clic sur les articles pour les marques
+        marqueController.setArticleClickListener(articleController);
+        
+        // Charger et afficher les marques
+        System.out.println("Chargement des marques...");
+        marqueController.afficherMarques();
     }
 }

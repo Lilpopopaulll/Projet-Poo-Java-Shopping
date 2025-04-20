@@ -3,9 +3,11 @@ package controller;
 import dao.ArticleDAO;
 import dao.ClientDAO;
 import dao.AdminDAO;
+import dao.PromotionDAO;
 import model.Admin;
 import model.Article;
 import model.Client;
+import model.Promotion;
 import view.AdminView;
 import view.ArticleFormView;
 import view.UserManagementView;
@@ -25,6 +27,7 @@ public class AdminController {
     private final ArticleDAO articleDAO;
     private final ClientDAO clientDAO;
     private final AdminDAO adminDAO;
+    private final PromotionDAO promotionDAO;
     private Admin adminConnecte;
     private JFrame mainFrame;
 
@@ -39,6 +42,7 @@ public class AdminController {
         this.articleDAO = new ArticleDAO(connection);
         this.clientDAO = new ClientDAO(connection);
         this.adminDAO = new AdminDAO(connection);
+        this.promotionDAO = new PromotionDAO(connection);
         this.mainFrame = mainFrame;
         
         // Configurer les écouteurs
@@ -116,6 +120,20 @@ public class AdminController {
                                 JOptionPane.ERROR_MESSAGE
                             );
                         }
+                    }
+                }
+            }
+        });
+        
+        // Écouteur pour le bouton Gérer Promotion
+        adminView.setGererPromoListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int idArticle = adminView.getSelectedArticleId();
+                if (idArticle != -1) {
+                    Article article = articleDAO.getById(idArticle);
+                    if (article != null) {
+                        gererPromotion(article);
                     }
                 }
             }
@@ -541,6 +559,79 @@ public class AdminController {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         
         dialog.setVisible(true);
+    }
+    
+    /**
+     * Gérer la promotion d'un article
+     * @param article Article dont on veut gérer la promotion
+     */
+    private void gererPromotion(Article article) {
+        // Récupérer la promotion existante pour cet article
+        Promotion existingPromotion = article.getPromotion();
+        
+        // Afficher la boîte de dialogue de gestion de promotion
+        Promotion result = adminView.showPromotionDialog(article, existingPromotion);
+        
+        if (result != null) {
+            if (result.getPourcentage() == -1) {
+                // Cas spécial: suppression de la promotion
+                boolean supprime = promotionDAO.supprimerParArticle(article.getIdArticle());
+                if (supprime) {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Promotion supprimée avec succès",
+                        "Suppression réussie",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Erreur lors de la suppression de la promotion",
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            } else if (existingPromotion != null) {
+                // Mise à jour d'une promotion existante
+                boolean updated = promotionDAO.update(result);
+                if (updated) {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Promotion mise à jour avec succès",
+                        "Mise à jour réussie",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Erreur lors de la mise à jour de la promotion",
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            } else {
+                // Ajout d'une nouvelle promotion
+                Promotion added = promotionDAO.ajouter(result);
+                if (added != null) {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Promotion ajoutée avec succès",
+                        "Ajout réussi",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Erreur lors de l'ajout de la promotion",
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+            
+            // Rafraîchir la liste des articles pour afficher les changements
+            rafraichirListeArticles();
+        }
     }
     
     /**

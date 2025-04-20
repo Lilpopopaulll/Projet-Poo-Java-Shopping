@@ -36,6 +36,24 @@ public class ArticleController implements ArticleClickListener {
     }
 
     public void initialiser() {
+        // Charger les catégories disponibles
+        List<String> categories = articleDAO.getAllCategories();
+        vue.setCategories(categories);
+        
+        // Configurer l'écouteur de filtre par catégorie
+        vue.setCategoryFilterListener(e -> {
+            String selectedCategory = vue.getSelectedCategory();
+            if (selectedCategory != null) {
+                // Filtrer par catégorie sélectionnée
+                List<Article> filteredArticles = articleDAO.getByCategory(selectedCategory);
+                vue.afficherArticles(filteredArticles);
+            } else {
+                // Afficher tous les articles
+                afficherArticles();
+            }
+        });
+        
+        // Afficher tous les articles
         afficherArticles();
     }
 

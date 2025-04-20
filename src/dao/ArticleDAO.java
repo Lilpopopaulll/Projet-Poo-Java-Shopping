@@ -1,10 +1,13 @@
 package dao;
 
 import model.Article;
+import model.Promotion;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ArticleDAO {
 
@@ -20,8 +23,9 @@ public class ArticleDAO {
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Article");
             ResultSet rs = stmt.executeQuery();
+            
             while (rs.next()) {
-                articles.add(new Article(
+                Article article = new Article(
                         rs.getInt("idArticle"),
                         rs.getString("nom"),
                         rs.getString("marque"),
@@ -30,10 +34,18 @@ public class ArticleDAO {
                         rs.getDouble("prixVrac"),
                         rs.getInt("quantiteVrac"),
                         rs.getInt("stock"),
-                        rs.getString("description"), // Ajout de la description
+                        rs.getString("description"),
                         rs.getString("catégorie")
-                ));
+                );
+                articles.add(article);
             }
+            
+            rs.close();
+            stmt.close();
+            
+            // Charger les promotions pour tous les articles
+            chargerPromotions(articles);
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -47,7 +59,7 @@ public class ArticleDAO {
             stmt.setString(1, "%" + nom + "%");
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                articles.add(new Article(
+                Article article = new Article(
                         rs.getInt("idArticle"),
                         rs.getString("nom"),
                         rs.getString("marque"),
@@ -56,9 +68,10 @@ public class ArticleDAO {
                         rs.getDouble("prixVrac"),
                         rs.getInt("quantiteVrac"),
                         rs.getInt("stock"),
-                        rs.getString("description"), // Ajout ici aussi
+                        rs.getString("description"),
                         rs.getString("catégorie")
-                ));
+                );
+                articles.add(article);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -85,7 +98,7 @@ public class ArticleDAO {
             stmt.setInt(1, idArticle);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new Article(
+                Article article = new Article(
                     rs.getInt("idArticle"),
                     rs.getString("nom"),
                     rs.getString("marque"),
@@ -97,6 +110,8 @@ public class ArticleDAO {
                     rs.getString("description"),
                     rs.getString("catégorie")
                 );
+                chargerPromotion(article);
+                return article;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -122,7 +137,7 @@ public class ArticleDAO {
             
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                articles.add(new Article(
+                Article article = new Article(
                     rs.getInt("idArticle"),
                     rs.getString("nom"),
                     rs.getString("marque"),
@@ -133,7 +148,8 @@ public class ArticleDAO {
                     rs.getInt("stock"),
                     rs.getString("description"),
                     rs.getString("catégorie")
-                ));
+                );
+                articles.add(article);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -227,5 +243,123 @@ public class ArticleDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    /**
+     * Charger les promotions pour une liste d'articles
+     * @param articles Liste des articles
+     */
+    private void chargerPromotions(List<Article> articles) {
+        if (articles.isEmpty()) {
+            return;
+        }
+        
+        try {
+            // Créer un DAO pour les promotions
+            PromotionDAO promotionDAO = new PromotionDAO(connection);
+            
+            // Récupérer toutes les promotions sous forme de map
+            Map<Integer, Promotion> promotionsMap = promotionDAO.getAllAsMap();
+            
+            // Associer les promotions aux articles
+            for (Article article : articles) {
+                Promotion promotion = promotionsMap.get(article.getIdArticle());
+                if (promotion != null) {
+                    article.setPromotion(promotion);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Charger la promotion pour un article spécifique
+     * @param article L'article
+     */
+    private void chargerPromotion(Article article) {
+        if (article == null) {
+            return;
+        }
+        
+        try {
+            // Créer un DAO pour les promotions
+            PromotionDAO promotionDAO = new PromotionDAO(connection);
+            
+            // Récupérer la promotion pour cet article
+            Promotion promotion = promotionDAO.getByArticleId(article.getIdArticle());
+            
+            // Associer la promotion à l'article si elle existe
+            if (promotion != null) {
+                article.setPromotion(promotion);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Récupérer toutes les catégories disponibles
+     * @return Liste des catégories distinctes
+     */
+    public List<String> getAllCategories() {
+        List<String> categories = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT DISTINCT catégorie FROM Article WHERE catégorie IS NOT NULL AND catégorie <> '' ORDER BY catégorie");
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                String categorie = rs.getString("catégorie");
+                if (categorie != null && !categorie.isEmpty()) {
+                    categories.add(categorie);
+                }
+            }
+            
+            rs.close();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
+    
+    /**
+     * Récupérer les articles par catégorie
+     * @param categorie Catégorie à filtrer
+     * @return Liste des articles de la catégorie spécifiée
+     */
+    public List<Article> getByCategory(String categorie) {
+        List<Article> articles = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Article WHERE catégorie = ?");
+            stmt.setString(1, categorie);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                Article article = new Article(
+                    rs.getInt("idArticle"),
+                    rs.getString("nom"),
+                    rs.getString("marque"),
+                    rs.getString("urlImage"),
+                    rs.getDouble("prixUnitaire"),
+                    rs.getDouble("prixVrac"),
+                    rs.getInt("quantiteVrac"),
+                    rs.getInt("stock"),
+                    rs.getString("description"),
+                    rs.getString("catégorie")
+                );
+                articles.add(article);
+            }
+            
+            rs.close();
+            stmt.close();
+            
+            // Charger les promotions pour tous les articles
+            chargerPromotions(articles);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return articles;
     }
 }

@@ -533,7 +533,7 @@ public class ValidationCommandeView extends JPanel {
             
             // Mettre à jour le résumé de la commande
             NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
-            double totalArticles = commande.getTotal() / 100.0; // Conversion en euros
+            double totalArticles = commande.getTotal(); // Ne pas diviser par 100
             
             // Mettre à jour les labels dans le panneau de livraison
             for (Component comp : livraisonPanel.getComponents()) {

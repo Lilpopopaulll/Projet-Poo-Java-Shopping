@@ -1,6 +1,7 @@
 package view;
 
 import model.Article;
+import model.Promotion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,6 +18,7 @@ public class AdminView extends JPanel {
     private JButton ajouterButton;
     private JButton modifierButton;
     private JButton supprimerButton;
+    private JButton gererPromoButton; // Bouton pour gérer les promotions
     private JTextField rechercheField;
     private JButton rechercheButton;
     private JButton articlesNavButton;
@@ -117,6 +119,15 @@ public class AdminView extends JPanel {
         supprimerButton.setEnabled(false); // Désactivé par défaut
         actionPanel.add(supprimerButton);
         
+        gererPromoButton = new JButton("Gérer Promotion");
+        gererPromoButton.setBackground(new Color(23, 162, 184)); // Bleu clair
+        gererPromoButton.setForeground(Color.WHITE);
+        gererPromoButton.setFont(new Font("Arial", Font.BOLD, 14));
+        gererPromoButton.setFocusPainted(false);
+        gererPromoButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        gererPromoButton.setEnabled(false); // Désactivé par défaut
+        actionPanel.add(gererPromoButton);
+        
         topPanel.add(actionPanel, BorderLayout.WEST);
         
         // Panneau pour la recherche
@@ -139,7 +150,7 @@ public class AdminView extends JPanel {
         panel.add(topPanel, BorderLayout.NORTH);
         
         // Création du modèle de table
-        String[] colonnes = {"ID", "Nom", "Marque", "Prix Unitaire", "Prix Vrac", "Qté Vrac", "Stock"};
+        String[] colonnes = {"ID", "Nom", "Marque", "Prix Unitaire", "Prix Vrac", "Qté Vrac", "Stock", "Promotion"};
         tableModel = new DefaultTableModel(colonnes, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -152,6 +163,8 @@ public class AdminView extends JPanel {
                     return Integer.class; // ID, Qté Vrac et Stock sont des entiers
                 } else if (columnIndex == 3 || columnIndex == 4) {
                     return Double.class; // Prix sont des doubles
+                } else if (columnIndex == 7) {
+                    return String.class; // Promotion est une chaîne
                 }
                 return String.class;
             }
@@ -165,18 +178,20 @@ public class AdminView extends JPanel {
         
         // Définir les largeurs des colonnes
         articlesTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
-        articlesTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Nom
-        articlesTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Marque
+        articlesTable.getColumnModel().getColumn(1).setPreferredWidth(180); // Nom
+        articlesTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Marque
         articlesTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Prix Unitaire
         articlesTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Prix Vrac
         articlesTable.getColumnModel().getColumn(5).setPreferredWidth(80);  // Qté Vrac
         articlesTable.getColumnModel().getColumn(6).setPreferredWidth(80);  // Stock
+        articlesTable.getColumnModel().getColumn(7).setPreferredWidth(100); // Promotion
         
         // Ajouter un écouteur de sélection pour activer/désactiver les boutons
         articlesTable.getSelectionModel().addListSelectionListener(e -> {
             boolean rowSelected = articlesTable.getSelectedRow() != -1;
             modifierButton.setEnabled(rowSelected);
             supprimerButton.setEnabled(rowSelected);
+            gererPromoButton.setEnabled(rowSelected);
         });
         
         // Ajouter la table dans un JScrollPane
@@ -196,14 +211,20 @@ public class AdminView extends JPanel {
         
         // Ajouter chaque article à la table
         for (Article article : articles) {
+            String promotionInfo = "Aucune";
+            if (article.getPromotion() != null) {
+                promotionInfo = "-" + article.getPromotion().getPourcentage() + "%";
+            }
+            
             Object[] row = {
                 article.getIdArticle(),
                 article.getNom(),
                 article.getMarque(),
-                article.getPrixUnitaire() / 100.0, // Conversion en euros
-                article.getPrixVrac() / 100.0,     // Conversion en euros
-                article.getQuantiteVrac(),
-                article.getStock()
+                article.getPrixUnitaire(),
+                article.getPrixVrac(),
+                article.getQuantiteVrac() > 0 ? article.getQuantiteVrac() : "Pas de quantité vrac",
+                article.getStock(),
+                promotionInfo
             };
             tableModel.addRow(row);
         }
@@ -356,5 +377,158 @@ public class AdminView extends JPanel {
      */
     public JButton getDeconnexionButton() {
         return deconnexionButton;
+    }
+    
+    /**
+     * Définir l'écouteur pour le bouton Gérer Promotion
+     * @param listener L'écouteur à définir
+     */
+    public void setGererPromoListener(ActionListener listener) {
+        gererPromoButton.addActionListener(listener);
+    }
+    
+    /**
+     * Afficher la boîte de dialogue pour gérer une promotion
+     * @param article L'article dont on veut gérer la promotion
+     * @param existingPromotion La promotion existante ou null s'il n'y en a pas
+     * @return La nouvelle promotion ou null si annulé
+     */
+    public Promotion showPromotionDialog(Article article, Promotion existingPromotion) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Gérer Promotion", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(400, 250);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Informations sur l'article
+        JLabel articleInfoLabel = new JLabel("Article: " + article.getNom() + " (" + article.getMarque() + ")");
+        articleInfoLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        articleInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(articleInfoLabel);
+        
+        JLabel prixLabel = new JLabel("Prix: " + String.format("%.2f €", article.getPrixUnitaire()));
+        prixLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        prixLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(prixLabel);
+        
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Panneau pour la saisie du pourcentage
+        JPanel pourcentagePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pourcentagePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel pourcentageLabel = new JLabel("Pourcentage de réduction:");
+        pourcentageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        pourcentagePanel.add(pourcentageLabel);
+        
+        SpinnerModel spinnerModel = new SpinnerNumberModel(
+            existingPromotion != null ? existingPromotion.getPourcentage() : 10, // valeur initiale
+            1,      // minimum
+            99,     // maximum
+            1       // pas
+        );
+        JSpinner pourcentageSpinner = new JSpinner(spinnerModel);
+        pourcentageSpinner.setPreferredSize(new Dimension(80, 25));
+        pourcentagePanel.add(pourcentageSpinner);
+        
+        JLabel percentLabel = new JLabel("%");
+        percentLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        pourcentagePanel.add(percentLabel);
+        
+        contentPanel.add(pourcentagePanel);
+        
+        // Afficher le prix après promotion
+        JPanel prixPromoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        prixPromoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel prixPromoLabel = new JLabel("Prix après promotion: ");
+        prixPromoLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        prixPromoPanel.add(prixPromoLabel);
+        
+        JLabel prixPromoValeur = new JLabel();
+        prixPromoValeur.setFont(new Font("Arial", Font.BOLD, 14));
+        prixPromoValeur.setForeground(new Color(0, 150, 0));
+        prixPromoPanel.add(prixPromoValeur);
+        
+        // Mettre à jour le prix après promotion lorsque le pourcentage change
+        pourcentageSpinner.addChangeListener(e -> {
+            int pourcentage = (Integer) pourcentageSpinner.getValue();
+            double prixPromo = article.getPrixUnitaire() * (100 - pourcentage) / 100.0;
+            prixPromoValeur.setText(String.format("%.2f €", prixPromo));
+        });
+        
+        // Initialiser le prix après promotion
+        int pourcentageInitial = (Integer) pourcentageSpinner.getValue();
+        double prixPromoInitial = article.getPrixUnitaire() * (100 - pourcentageInitial) / 100.0;
+        prixPromoValeur.setText(String.format("%.2f €", prixPromoInitial));
+        
+        contentPanel.add(prixPromoPanel);
+        
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Panneau pour les boutons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JButton cancelButton = new JButton("Annuler");
+        cancelButton.addActionListener(e -> dialog.dispose());
+        
+        JButton saveButton = new JButton("Enregistrer");
+        saveButton.setBackground(new Color(40, 167, 69));
+        saveButton.setForeground(Color.WHITE);
+        
+        JButton deleteButton = null;
+        if (existingPromotion != null) {
+            deleteButton = new JButton("Supprimer Promotion");
+            deleteButton.setBackground(new Color(220, 53, 69));
+            deleteButton.setForeground(Color.WHITE);
+            buttonPanel.add(deleteButton);
+        }
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+        
+        // Variable pour stocker le résultat
+        final Promotion[] result = {null};
+        
+        // Action du bouton Enregistrer
+        saveButton.addActionListener(e -> {
+            int pourcentage = (Integer) pourcentageSpinner.getValue();
+            if (existingPromotion != null) {
+                existingPromotion.setPourcentage(pourcentage);
+                result[0] = existingPromotion;
+            } else {
+                result[0] = new Promotion(article.getIdArticle(), pourcentage);
+            }
+            dialog.dispose();
+        });
+        
+        // Action du bouton Supprimer si existant
+        if (deleteButton != null) {
+            deleteButton.addActionListener(e -> {
+                int confirm = JOptionPane.showConfirmDialog(
+                    dialog,
+                    "Êtes-vous sûr de vouloir supprimer cette promotion?",
+                    "Confirmation de suppression",
+                    JOptionPane.YES_NO_OPTION
+                );
+                if (confirm == JOptionPane.YES_OPTION) {
+                    result[0] = new Promotion(article.getIdArticle(), 0);
+                    result[0].setIdPromotion(existingPromotion.getIdPromotion());
+                    result[0].setPourcentage(-1); // Valeur spéciale pour indiquer une suppression
+                    dialog.dispose();
+                }
+            });
+        }
+        
+        dialog.add(contentPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+        
+        return result[0];
     }
 }

@@ -10,6 +10,7 @@ import java.awt.event.MouseWheelListener;
 public class LandingPageView extends JPanel {
     
     private ArticleView articleView;
+    private MarqueView marqueView;
     private HeroBannerView heroBannerView;
     private JScrollPane scrollPane;
     
@@ -19,6 +20,9 @@ public class LandingPageView extends JPanel {
         
         // Créer la bannière hero
         heroBannerView = new HeroBannerView();
+        
+        // Créer la vue des marques
+        marqueView = new MarqueView();
         
         // Créer la vue des articles
         articleView = new ArticleView();
@@ -30,6 +34,7 @@ public class LandingPageView extends JPanel {
         
         // Ajouter les composants au panneau de contenu
         contentPanel.add(heroBannerView);
+        contentPanel.add(marqueView);
         contentPanel.add(articleView);
         
         // Créer un JScrollPane pour permettre le défilement
@@ -47,6 +52,10 @@ public class LandingPageView extends JPanel {
     
     public ArticleView getArticleView() {
         return articleView;
+    }
+    
+    public MarqueView getMarqueView() {
+        return marqueView;
     }
     
     public void setArticleClickListener(ArticleClickListener listener) {

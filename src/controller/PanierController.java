@@ -111,13 +111,22 @@ public class PanierController implements PanierListener, ArticleClickListener {
         }
         
         // Calculer le prix moyen pondéré
-        double prixUnitaire = article.getPrixUnitaire();
+        double prixUnitaire;
+        
+        // Utiliser le prix après promotion si une promotion existe
+        if (article.getPromotion() != null) {
+            prixUnitaire = article.getPrixApresPromotion();
+        } else {
+            prixUnitaire = article.getPrixUnitaire();
+        }
+        
         double prixVrac = article.getPrixVrac();
         int quantiteVrac = article.getQuantiteVrac();
         
         int prixApplique;
         
-        if (nouvelleQuantite >= quantiteVrac) {
+        // Vérifier si la quantité vrac est supérieure à 0 pour éviter la division par zéro
+        if (quantiteVrac > 0 && nouvelleQuantite >= quantiteVrac) {
             // Calculer combien de lots complets de vrac nous avons
             int nombreLotsVrac = nouvelleQuantite / quantiteVrac;
             int uniteRestantes = nouvelleQuantite % quantiteVrac;
@@ -141,9 +150,6 @@ public class PanierController implements PanierListener, ArticleClickListener {
             ligneExistante.setQuantite(nouvelleQuantite);
             ligneExistante.setPrixApplique(prixApplique);
             ligneCommandeDAO.update(ligneExistante);
-            
-            // Mettre à jour le total de la commande
-            panier.ajouterLigneCommande(ligneExistante);
         } else {
             // Créer une nouvelle ligne de commande
             LigneCommande nouvelleLigne = new LigneCommande(
@@ -156,11 +162,15 @@ public class PanierController implements PanierListener, ArticleClickListener {
 
             // Ajouter la ligne au panier
             ligneCommandeDAO.ajouter(nouvelleLigne);
-
+            
             // Mettre à jour le total de la commande
             panier.ajouterLigneCommande(nouvelleLigne);
         }
         
+        // Recalculer le total du panier
+        panier.calculerTotal();
+        
+        // Mettre à jour le panier dans la base de données
         commandeDAO.update(panier);
 
         // Mettre à jour le stock de l'article
@@ -193,6 +203,17 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 "Panier vide", 
                 JOptionPane.INFORMATION_MESSAGE);
         } else {
+            // Charger les articles complets pour chaque ligne
+            List<LigneCommande> lignesCommande = ligneCommandeDAO.getByCommandeId(panier.getIdCommande());
+            for (LigneCommande ligne : lignesCommande) {
+                Article articleComplet = articleDAO.getById(ligne.getIdArticle());
+                ligne.setArticle(articleComplet);
+            }
+            panier.setLignesCommande(lignesCommande);
+            
+            // Recalculer le total du panier
+            panier.calculerTotal();
+            
             // Afficher le panier
             panierView.afficherPanier(panier);
             
@@ -243,7 +264,26 @@ public class PanierController implements PanierListener, ArticleClickListener {
         }
         
         // Configurer l'écouteur pour le bouton de retour
-        panierView.setRetourListener(this);
+        panierView.setRetourListener(new ArticleClickListener() {
+            @Override
+            public void onArticleClick(Article article) {
+                // Retour à la vue précédente (landing page)
+                if (mainPanel != null) {
+                    CardLayout cl = (CardLayout) mainPanel.getLayout();
+                    cl.show(mainPanel, "landing");
+                    
+                    // Forcer le rafraîchissement
+                    mainPanel.revalidate();
+                    mainPanel.repaint();
+                    System.out.println("Retour à la page d'accueil depuis le panier");
+                }
+                
+                // Propager l'événement au parent si nécessaire
+                if (parentClickListener != null) {
+                    parentClickListener.onArticleClick(null);
+                }
+            }
+        });
     }
 
     // Supprimer un article du panier
@@ -310,7 +350,7 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 
                 System.out.println("Article supprimé du panier avec succès");
                 
-                // Rafraîchir l'affichage
+                // Nouvelle approche: Recréer complètement la vue du panier
                 if (panier.getLignesCommande().isEmpty()) {
                     // Retourner à la landing page si le panier est vide
                     if (mainPanel != null) {
@@ -327,7 +367,61 @@ public class PanierController implements PanierListener, ArticleClickListener {
                         "Panier vide", 
                         JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    panierView.afficherPanier(panier);
+                    // Créer une nouvelle instance de PanierView
+                    PanierView nouvellePanierView = new PanierView();
+                    
+                    // Configurer la nouvelle vue
+                    nouvellePanierView.setSuppressionListener(e -> {
+                        String idArticleStr = e.getActionCommand();
+                        try {
+                            int idArticleToDelete = Integer.parseInt(idArticleStr);
+                            supprimerDuPanier(idArticleToDelete);
+                        } catch (NumberFormatException ex) {
+                            System.err.println("ID d'article invalide: " + idArticleStr);
+                        }
+                    });
+                    
+                    nouvellePanierView.setValidationListener(e -> validerPanier());
+                    nouvellePanierView.setRetourListener(this);
+                    
+                    // Récupérer le panier mis à jour avec toutes les lignes de commande
+                    Commande panierMisAJour = commandeDAO.getPanierByClientId(clientConnecte.getIdClient());
+                    List<LigneCommande> lignesMisesAJour = ligneCommandeDAO.getByCommandeId(panierMisAJour.getIdCommande());
+                    
+                    // Charger les articles complets pour chaque ligne
+                    for (LigneCommande ligne : lignesMisesAJour) {
+                        Article articleComplet = articleDAO.getById(ligne.getIdArticle());
+                        ligne.setArticle(articleComplet);
+                    }
+                    
+                    panierMisAJour.setLignesCommande(lignesMisesAJour);
+                    
+                    // Recalculer le total du panier
+                    panierMisAJour.calculerTotal();
+                    
+                    // Afficher le panier dans la nouvelle vue
+                    nouvellePanierView.afficherPanier(panierMisAJour);
+                    
+                    // Remplacer l'ancienne vue par la nouvelle dans le mainPanel
+                    if (mainPanel != null) {
+                        // Supprimer l'ancienne vue
+                        mainPanel.remove(panierView);
+                        
+                        // Ajouter la nouvelle vue
+                        mainPanel.add(nouvellePanierView, "panier");
+                        
+                        // Mettre à jour la référence
+                        panierView = nouvellePanierView;
+                        
+                        // Afficher la vue du panier
+                        CardLayout cl = (CardLayout) mainPanel.getLayout();
+                        cl.show(mainPanel, "panier");
+                        
+                        // Forcer le rafraîchissement
+                        mainPanel.revalidate();
+                        mainPanel.repaint();
+                        System.out.println("Panier rafraîchi après suppression d'un article");
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -408,13 +502,18 @@ public class PanierController implements PanierListener, ArticleClickListener {
             // Mettre à jour les informations de livraison dans la commande
             // Dans un vrai système, on stockerait ces informations dans la base de données
             
+            // Mettre à jour le total de la commande pour inclure les frais de livraison
+            double totalAvecFrais = panier.getTotal() + fraisLivraison;
+            panier.setTotal((int)totalAvecFrais); // Conversion en int si nécessaire
+            commandeDAO.update(panier);
+            
             // Changer le statut du panier
             commandeDAO.validerPanier(panier.getIdCommande());
             
             // Afficher un message de confirmation
             JOptionPane.showMessageDialog(null, 
                 "Votre commande a été validée avec succès !\n" +
-                "Montant total : " + (panier.getTotal() / 100.0 + fraisLivraison) + " €\n" +
+                "Montant total : " + totalAvecFrais + " €\n" +
                 "Adresse de livraison : " + adresseLivraison + "\n" +
                 "Mode de livraison : " + modeLivraison,
                 "Commande validée", 

@@ -11,6 +11,7 @@ public class Article {
     private String urlImage;
     private String description;
     private String categorie;
+    private Promotion promotion; // Promotion associée à l'article
 
     public Article(int idArticle, String nom, String marque, String urlImage, double prixUnitaire,
                    double prixVrac, int quantiteVrac, int stock, String description) {
@@ -51,6 +52,7 @@ public class Article {
     public String getUrlImage() { return urlImage; }
     public String getDescription() { return description; }
     public String getCategorie() { return categorie; }
+    public Promotion getPromotion() { return promotion; }
 
     // Setters
     public void setIdArticle(int idArticle) { this.idArticle = idArticle; }
@@ -63,4 +65,16 @@ public class Article {
     public void setUrlImage(String urlImage) { this.urlImage = urlImage; }
     public void setDescription(String description) { this.description = description; }
     public void setCategorie(String categorie) { this.categorie = categorie; }
+    public void setPromotion(Promotion promotion) { this.promotion = promotion; }
+    
+    /**
+     * Calcule le prix après promotion si une promotion est appliquée
+     * @return Le prix après promotion ou le prix unitaire si pas de promotion
+     */
+    public double getPrixApresPromotion() {
+        if (promotion != null) {
+            return prixUnitaire * (100 - promotion.getPourcentage()) / 100.0;
+        }
+        return prixUnitaire;
+    }
 }

@@ -54,12 +54,21 @@ public class PanierView extends JPanel {
     
     // Méthode pour afficher le contenu du panier
     public void afficherPanier(Commande panier) {
+        // Supprimer tous les composants existants
         removeAll();
+        
+        // Réinitialiser le modèle de table
+        tableModel.setRowCount(0);
         
         // Panel principal avec une marge
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 40, 40));
+        
+        // Créer un panel pour le titre avec le bouton de retour
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
         // Bouton retour avec style amélioré
         JButton backButton = new JButton("← Retour");
@@ -77,11 +86,6 @@ public class PanierView extends JPanel {
                 retourListener.onArticleClick(null); // signal de retour
             }
         });
-
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.WHITE);
-        topPanel.add(backButton, BorderLayout.WEST);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
         // Titre avec style amélioré
         JLabel title = new JLabel("Votre Panier", SwingConstants.CENTER);
@@ -89,11 +93,15 @@ public class PanierView extends JPanel {
         title.setForeground(Color.decode("#212529"));
         title.setBorder(BorderFactory.createEmptyBorder(10, 0, 30, 0));
         
-        // Vider la table
-        tableModel.setRowCount(0);
+        titlePanel.add(backButton, BorderLayout.WEST);
+        titlePanel.add(title, BorderLayout.CENTER);
         
-        // Formatter pour les prix
+        // Créer un formatteur de prix
         NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        
+        // Ajouter la table dans un JScrollPane
+        JScrollPane scrollPane = new JScrollPane(panierTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         
         // Ajouter chaque ligne de commande à la table
         double totalEconomies = 0.0;
@@ -101,15 +109,25 @@ public class PanierView extends JPanel {
             String nomArticle = ligne.getArticle() != null ? ligne.getArticle().getNom() : "Article inconnu";
             
             // Informations sur les prix
-            double prixUnitaireStandard = ligne.getArticle().getPrixUnitaire() / 100.0;
-            double prixUnitaireVrac = ligne.getArticle().getPrixVrac() / 100.0;
-            double prixUnitaireApplique = ligne.getPrixApplique() / 100.0;
+            double prixUnitaireStandard = ligne.getArticle().getPrixUnitaire();
+            double prixUnitaireVrac = ligne.getArticle().getPrixVrac();
+            double prixUnitaireApplique = ligne.getPrixApplique();
             int quantite = ligne.getQuantite();
-            double sousTotal = ligne.getSousTotal() / 100.0;
+            double sousTotal = ligne.getSousTotal();
             int quantiteVrac = ligne.getArticle().getQuantiteVrac();
             
+            // Vérifier si l'article a une promotion
+            boolean hasPromotion = ligne.getArticle().getPromotion() != null;
+            double prixOriginal = 0.0;
+            double pourcentagePromo = 0;
+            
+            if (hasPromotion) {
+                prixOriginal = ligne.getArticle().getPrixUnitaire();
+                pourcentagePromo = ligne.getArticle().getPromotion().getPourcentage();
+            }
+            
             // Calcul des économies et détermination si le prix mixte est appliqué
-            boolean prixMixteApplique = quantite >= quantiteVrac;
+            boolean prixMixteApplique = quantiteVrac > 0 && quantite >= quantiteVrac;
             double economie = 0.0;
             
             if (prixMixteApplique) {
@@ -122,7 +140,7 @@ public class PanierView extends JPanel {
                 
                 // Prix total avec la répartition vrac/standard
                 double prixTotalMixte = (nombreLotsVrac * quantiteVrac * prixUnitaireVrac) + 
-                                        (uniteRestantes * prixUnitaireStandard);
+                                         (uniteRestantes * prixUnitaireStandard);
                 
                 economie = prixTotalStandard - prixTotalMixte;
                 totalEconomies += economie;
@@ -138,8 +156,21 @@ public class PanierView extends JPanel {
             prixLabel.setForeground(Color.decode("#212529"));
             prixPanel.add(prixLabel);
             
-            if (prixMixteApplique) {
+            if (hasPromotion) {
+                // Afficher le prix original barré
+                JLabel prixOriginalLabel = new JLabel("<html><strike>" + formatPrix.format(prixOriginal) + "</strike></html>");
+                prixOriginalLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                prixOriginalLabel.setForeground(Color.RED);
+                prixPanel.add(prixOriginalLabel);
+                
+                // Afficher l'indication de promotion
+                JLabel promoLabel = new JLabel("<html><font color='#28a745'>Promotion -" + pourcentagePromo + "% appliquée</font></html>");
+                promoLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+                prixPanel.add(promoLabel);
+            }
+            else if (prixMixteApplique) {
                 // Afficher le détail du calcul du prix mixte
+                // La vérification quantiteVrac > 0 a déjà été faite dans prixMixteApplique
                 int nombreLotsVrac = quantite / quantiteVrac;
                 int uniteRestantes = quantite % quantiteVrac;
                 
@@ -167,7 +198,13 @@ public class PanierView extends JPanel {
             sousTotalLabel.setForeground(Color.decode("#212529"));
             sousTotalPanel.add(sousTotalLabel);
             
-            if (prixMixteApplique) {
+            if (hasPromotion) {
+                double economiePromo = (prixOriginal - prixUnitaireApplique) * quantite;
+                JLabel economieDetailLabel = new JLabel("<html><font color='#28a745'>Économie: " + formatPrix.format(economiePromo) + "</font></html>");
+                economieDetailLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+                sousTotalPanel.add(economieDetailLabel);
+            }
+            else if (prixMixteApplique) {
                 JLabel economieDetailLabel = new JLabel("<html><font color='#28a745'>Économie: " + formatPrix.format(economie) + "</font></html>");
                 economieDetailLabel.setFont(new Font("Arial", Font.ITALIC, 11));
                 sousTotalPanel.add(economieDetailLabel);
@@ -211,7 +248,7 @@ public class PanierView extends JPanel {
         ));
         
         // Affichage du total
-        totalLabel = new JLabel("Total: " + formatPrix.format(panier.getTotal() / 100.0));
+        totalLabel = new JLabel("Total: " + formatPrix.format(panier.getTotal()));
         totalLabel.setFont(new Font("Arial", Font.BOLD, 18));
         totalLabel.setForeground(Color.decode("#212529"));
         totalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -235,25 +272,22 @@ public class PanierView extends JPanel {
         bottomPanel.add(validerButton, BorderLayout.EAST);
         
         // Assembler les composants
-        mainPanel.add(topPanel, BorderLayout.NORTH);
-        mainPanel.add(title, BorderLayout.NORTH);
+        mainPanel.add(titlePanel, BorderLayout.NORTH);
         
         // Créer le panel de la table avec défilement
-        JScrollPane tableScrollPane = new JScrollPane(panierTable);
-        tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
-        
-        mainPanel.add(tableScrollPane, BorderLayout.CENTER);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
         
         // Créer un scroll pane pour le panel principal
         JScrollPane mainScrollPane = new JScrollPane(mainPanel);
-        mainScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        mainScrollPane.getViewport().setBackground(Color.WHITE);
-        mainScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        mainScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        mainScrollPane.setBorder(null);
+        mainScrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
+        // Ajouter le scroll pane au panneau principal
+        setLayout(new BorderLayout());
         add(mainScrollPane, BorderLayout.CENTER);
+        
+        // Forcer le rafraîchissement de l'interface
         revalidate();
         repaint();
     }
