@@ -10,6 +10,7 @@ import controller.MarqueController;
 import model.Admin;
 import model.Client;
 import model.EtatConnexion;
+import view.theme.AppTheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +40,7 @@ public class MainView extends JFrame {
 
     public MainView(Connection connection) {
         // Configuration de la fenêtre principale
-        setTitle("Application Boutique");
+        setTitle("CUSTOMIZATION");
         // Définir une taille par défaut pour la fenêtre
         setSize(1200, 800);
         // Centrer la fenêtre sur l'écran
@@ -49,6 +50,9 @@ public class MainView extends JFrame {
         // Afficher les bordures et les boutons de contrôle de la fenêtre
         setUndecorated(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        // Appliquer le thème sombre à toute la fenêtre
+        this.getContentPane().setBackground(AppTheme.BACKGROUND_DARK);
 
         // Créer les vues
         landingPageView = new LandingPageView();
@@ -56,6 +60,7 @@ public class MainView extends JFrame {
         
         // Créer le panneau principal qui contiendra les vues
         mainPanel = new JPanel(new CardLayout());
+        mainPanel.setBackground(AppTheme.BACKGROUND_DARK);
         mainPanel.add(landingPageView, "landing");
         mainPanel.add(articleDetailView, "detail");
         
@@ -80,103 +85,108 @@ public class MainView extends JFrame {
         // Initialiser le contrôleur de marques
         initMarqueController(connection, articleController, mainPanel);
 
-        // Ajouter le bouton de connexion en haut à droite
-        JPanel topPanel = new JPanel(new BorderLayout());
-        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(new Color(245, 245, 245));
+        // Créer le header avec le logo et les boutons
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(AppTheme.BACKGROUND_DARK);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
         
-        // Bouton panier
-        panierButton = new JButton("Voir panier");
-        panierButton.setBackground(new Color(255, 193, 7)); // Jaune pour le panier
-        panierButton.setForeground(Color.BLACK);
-        panierButton.setFont(new Font("Arial", Font.BOLD, 14));
-        panierButton.setFocusPainted(false);
-        panierButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        // Logo à gauche
+        JLabel logoLabel = new JLabel("CUSTOMIZATION");
+        logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        logoLabel.setForeground(AppTheme.TEXT_WHITE);
+        
+        // Boutons à droite
+        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        buttonPanel.setBackground(AppTheme.BACKGROUND_DARK);
+        
+        // Bouton panier avec style moderne
+        panierButton = new JButton("PANIER");
+        AppTheme.styleButton(panierButton, false);
         panierButton.setVisible(false); // Caché par défaut, visible seulement quand connecté
         
-        // Bouton historique
-        historiqueButton = new JButton("Historique");
-        historiqueButton.setBackground(new Color(23, 162, 184)); // Bleu clair pour l'historique
-        historiqueButton.setForeground(Color.WHITE);
-        historiqueButton.setFont(new Font("Arial", Font.BOLD, 14));
-        historiqueButton.setFocusPainted(false);
-        historiqueButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        // Bouton historique avec style moderne
+        historiqueButton = new JButton("HISTORIQUE");
+        AppTheme.styleButton(historiqueButton, false);
         historiqueButton.setVisible(false); // Caché par défaut, visible seulement quand connecté
-        historiqueButton.addActionListener(new ActionListener() {
+        
+        // Bouton connexion avec style moderne
+        loginButton = new JButton("SE CONNECTER");
+        AppTheme.styleButton(loginButton, true);
+        
+        // Label utilisateur
+        userLabel = new JLabel();
+        userLabel.setFont(AppTheme.REGULAR_FONT);
+        userLabel.setForeground(AppTheme.TEXT_WHITE);
+        userLabel.setVisible(false);
+        
+        // Ajouter les boutons au panel
+        buttonPanel.add(userLabel);
+        buttonPanel.add(historiqueButton);
+        buttonPanel.add(panierButton);
+        buttonPanel.add(loginButton);
+        
+        // Ajouter le logo et les boutons au header
+        headerPanel.add(logoLabel, BorderLayout.WEST);
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
+        
+        // Configurer les actions des boutons
+        loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                historiqueController.afficherHistorique();
+                if (loginController != null) {
+                    if (loginController.getEtatConnexion() == EtatConnexion.NON_CONNECTE) {
+                        afficherFenetreConnexion(connection);
+                    } else {
+                        loginController.deconnecter();
+                    }
+                }
             }
         });
         
-        // Bouton connexion
-        loginButton = new JButton("Se connecter");
-        loginButton.setBackground(new Color(50, 150, 255));
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
-        loginButton.setFocusPainted(false);
-        loginButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        
-        userLabel = new JLabel("");
-        userLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        userLabel.setForeground(new Color(50, 50, 50));
-        userLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 10));
-        userLabel.setVisible(false);
-        
-        buttonPanel.add(userLabel);
-        buttonPanel.add(panierButton);
-        buttonPanel.add(historiqueButton);
-        buttonPanel.add(loginButton);
-        topPanel.add(buttonPanel, BorderLayout.EAST);
-        
-        // Créer un panel conteneur avec BorderLayout
-        JPanel containerPanel = new JPanel(new BorderLayout());
-        
-        // Ajouter les boutons en haut (fixe)
-        containerPanel.add(topPanel, BorderLayout.NORTH);
-        
-        // Ajouter le panneau principal directement (sans le hero banner)
-        containerPanel.add(mainPanel, BorderLayout.CENTER);
-        
-        // Ajouter le panel conteneur à la fenêtre
-        add(containerPanel);
-
         // Initialiser les contrôleurs
         initLoginController(connection);
         initPanierController(connection, articleController, mainPanel);
         initHistoriqueController(connection, articleController, mainPanel);
         
-        // Configurer le bouton de connexion
-        loginButton.addActionListener(new ActionListener() {
+        // Configurer l'action du bouton panier
+        panierButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (loginController.estConnecte()) {
-                    // Déconnexion
-                    loginController.deconnecter();
-                    // Retourner à la landing page
-                    CardLayout cl = (CardLayout) mainPanel.getLayout();
-                    cl.show(mainPanel, "landing");
-                } else {
-                    // Connexion
-                    afficherFenetreConnexion(connection);
+                if (panierController != null) {
+                    panierController.afficherPanier();
                 }
             }
         });
         
-        // Configurer le bouton du panier
-        panierButton.addActionListener(new ActionListener() {
+        // Configurer l'action du bouton historique
+        historiqueButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                panierController.afficherPanier();
+                if (historiqueController != null) {
+                    historiqueController.afficherHistorique();
+                }
             }
         });
         
+        // Créer un panel conteneur avec BorderLayout
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        containerPanel.setBackground(AppTheme.BACKGROUND_DARK);
+        
+        // Ajouter le header en haut (fixe)
+        containerPanel.add(headerPanel, BorderLayout.NORTH);
+        
+        // Ajouter le panel principal au centre
+        containerPanel.add(mainPanel, BorderLayout.CENTER);
+        
+        // Ajouter le panel conteneur à la fenêtre
+        add(containerPanel);
+        
         // Appeler l'affichage via le contrôleur
         articleController.initialiser(); // C'est ça qui fait le lien complet
-
+        
         // Mettre la fenêtre en plein écran fenêtré
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-
+        
         // Afficher la fenêtre
         setVisible(true);
     }
@@ -342,12 +352,12 @@ public class MainView extends JFrame {
     
     private void mettreAJourBoutonConnexion(EtatConnexion etatConnexion) {
         if (etatConnexion == EtatConnexion.NON_CONNECTE) {
-            // État déconnecté
+            // État non connecté
             userLabel.setVisible(false);
             panierButton.setVisible(false);
             historiqueButton.setVisible(false);
-            loginButton.setText("Se connecter");
-            loginButton.setBackground(new Color(50, 150, 255));
+            loginButton.setText("SE CONNECTER");
+            AppTheme.styleButton(loginButton, true);
             loginButton.setVisible(true);
             
             // Cacher les boutons de navigation admin s'ils existent
@@ -367,12 +377,12 @@ public class MainView extends JFrame {
             historiqueController.setClientConnecte(null);
         } else if (etatConnexion == EtatConnexion.CONNEXION_CLIENT) {
             // État connecté en tant que client
-            userLabel.setText("Bonjour, " + clientConnecte.getPrenom());
+            userLabel.setText("BONJOUR, " + clientConnecte.getPrenom().toUpperCase());
             userLabel.setVisible(true);
             panierButton.setVisible(true);
             historiqueButton.setVisible(true);
-            loginButton.setText("Déconnexion");
-            loginButton.setBackground(new Color(220, 53, 69)); // Rouge pour déconnexion
+            loginButton.setText("DÉCONNEXION");
+            AppTheme.styleButton(loginButton, false);
             loginButton.setVisible(true);
             
             // Cacher les boutons de navigation admin s'ils existent
@@ -392,7 +402,7 @@ public class MainView extends JFrame {
             historiqueController.setClientConnecte(clientConnecte);
         } else if (etatConnexion == EtatConnexion.CONNEXION_ADMINISTRATEUR) {
             // État connecté en tant qu'administrateur
-            userLabel.setText("Admin: " + adminConnecte.getEmail());
+            userLabel.setText("ADMIN: " + adminConnecte.getEmail().toUpperCase());
             userLabel.setVisible(true);
             panierButton.setVisible(false);
             historiqueButton.setVisible(false);
@@ -407,6 +417,7 @@ public class MainView extends JFrame {
                 JButton deconnexionButton = adminView.getDeconnexionButton();
                 if (deconnexionButton != null) {
                     deconnexionButton.setVisible(true);
+                    AppTheme.styleButton(deconnexionButton, false);
                 }
             }
         }

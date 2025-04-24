@@ -7,7 +7,6 @@ import view.ArticleView;
 import view.ArticleDetailView;
 
 import javax.swing.*;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
@@ -70,34 +69,14 @@ public class ArticleController implements ArticleClickListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    // Récupérer la quantité depuis le spinner
-                    JButton button = (JButton) e.getSource();
-                    JPanel infoPanel = (JPanel) button.getParent();
+                    // Utiliser les nouvelles méthodes de ArticleDetailView
+                    Article currentArticle = detailVue.getCurrentArticle();
+                    int quantite = detailVue.getSelectedQuantity();
                     
-                    // Trouver le panel de quantité (il est à l'index 4 dans infoPanel)
-                    JPanel quantityPanel = null;
-                    for (int i = 0; i < infoPanel.getComponentCount(); i++) {
-                        Component comp = infoPanel.getComponent(i);
-                        if (comp instanceof JPanel && ((JPanel) comp).getComponentCount() > 0 
-                                && ((JPanel) comp).getComponent(0) instanceof JLabel 
-                                && ((JLabel) ((JPanel) comp).getComponent(0)).getText().startsWith("Quantité")) {
-                            quantityPanel = (JPanel) comp;
-                            break;
-                        }
-                    }
-                    
-                    if (quantityPanel == null) {
-                        throw new Exception("Impossible de trouver le panel de quantité");
-                    }
-                    
-                    // Le spinner est le 3ème composant (index 2) du panel de quantité
-                    JSpinner spinner = (JSpinner) quantityPanel.getComponent(2);
-                    int quantite = (Integer) spinner.getValue();
-                    
-                    System.out.println("Tentative d'ajout au panier: " + article.getNom() + ", quantité: " + quantite);
+                    System.out.println("Tentative d'ajout au panier: " + currentArticle.getNom() + ", quantité: " + quantite);
                     
                     // Ajouter l'article au panier
-                    ajouterAuPanier(article, quantite);
+                    ajouterAuPanier(currentArticle, quantite);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(null, 

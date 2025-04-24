@@ -2,7 +2,7 @@ package view;
 
 import model.Article;
 import controller.ArticleClickListener;
-import model.Promotion;
+import view.theme.AppTheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,10 +14,12 @@ import java.util.Map;
 public class ArticleDetailView extends JPanel {
     private ArticleClickListener clickListener;
     private JButton addToCartButton;
+    private JSpinner quantitySpinner; 
+    private Article currentArticle; 
 
     public ArticleDetailView() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(AppTheme.BACKGROUND_DARK);
     }
 
     public void setArticleClickListener(ArticleClickListener listener) {
@@ -27,57 +29,45 @@ public class ArticleDetailView extends JPanel {
     public void afficherDetailArticle(Article article) {
         removeAll();
         
-        // Panel principal avec une marge
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(Color.WHITE);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 40, 40));
+        this.currentArticle = article;
         
-        // Bouton retour avec style amélioré
-        JButton backButton = new JButton("← Retour");
-        backButton.setFont(new Font("Arial", Font.BOLD, 14));
-        backButton.setFocusPainted(false);
-        backButton.setBackground(Color.decode("#f8f9fa"));
-        backButton.setForeground(Color.decode("#495057"));
-        backButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#dee2e6")),
-                BorderFactory.createEmptyBorder(8, 15, 8, 15)
-        ));
-        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(AppTheme.BACKGROUND_DARK);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 50, 50));
+        
+        JButton backButton = new JButton("← RETOUR");
+        AppTheme.styleButton(backButton, false);
         backButton.addActionListener(e -> {
             if (clickListener != null) {
-                clickListener.onArticleClick(null); // signal de retour
+                clickListener.onArticleClick(null); 
             }
         });
 
         JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.WHITE);
+        topPanel.setBackground(AppTheme.BACKGROUND_DARK);
         topPanel.add(backButton, BorderLayout.WEST);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
-        // Titre avec style amélioré
-        JLabel title = new JLabel(article.getNom(), SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 32));
-        title.setForeground(Color.decode("#212529"));
-        title.setBorder(BorderFactory.createEmptyBorder(10, 0, 30, 0));
+        JLabel title = new JLabel(article.getNom().toUpperCase(), SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 36));
+        title.setForeground(AppTheme.TEXT_WHITE);
+        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
 
-        // Marque avec style
-        JLabel marqueLabel = new JLabel(article.getMarque(), SwingConstants.CENTER);
-        marqueLabel.setFont(new Font("Arial", Font.ITALIC, 18));
-        marqueLabel.setForeground(Color.decode("#6c757d"));
-        marqueLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        JLabel marqueLabel = new JLabel(article.getMarque().toUpperCase(), SwingConstants.CENTER);
+        marqueLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        marqueLabel.setForeground(AppTheme.TEXT_GRAY);
+        marqueLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
-        // Panel central avec image et informations
         JPanel center = new JPanel();
         center.setLayout(new BoxLayout(center, BoxLayout.X_AXIS));
-        center.setBackground(Color.WHITE);
-        center.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        center.setBackground(AppTheme.BACKGROUND_DARK);
+        center.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
 
-        // Panel pour l'image avec bordure et ombre
         JPanel imagePanel = new JPanel(new BorderLayout());
-        imagePanel.setBackground(Color.WHITE);
+        imagePanel.setBackground(AppTheme.BACKGROUND_MEDIUM);
         imagePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#dee2e6"), 1),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                BorderFactory.createLineBorder(AppTheme.BACKGROUND_LIGHT, 1),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
 
         JLabel imageLabel = new JLabel();
@@ -87,213 +77,192 @@ public class ArticleDetailView extends JPanel {
         try {
             String imagePath = "src/view/images/" + article.getUrlImage();
             ImageIcon icon = new ImageIcon(imagePath);
-            Image image = icon.getImage().getScaledInstance(350, 350, Image.SCALE_SMOOTH);
+            Image image = icon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
             imageLabel.setIcon(new ImageIcon(image));
         } catch (Exception e) {
-            imageLabel.setText("Image manquante");
+            imageLabel.setText("IMAGE NON DISPONIBLE");
             imageLabel.setFont(new Font("Arial", Font.ITALIC, 16));
-            imageLabel.setForeground(Color.decode("#dc3545"));
+            imageLabel.setForeground(AppTheme.TEXT_GRAY);
         }
 
         imagePanel.add(imageLabel, BorderLayout.CENTER);
 
-        // Panel d'informations avec style amélioré
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setBackground(Color.WHITE);
-        infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 0, 0));
-
-        // Prix avec style amélioré
+        infoPanel.setBackground(AppTheme.BACKGROUND_DARK);
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 40, 0, 0));
+        
+        JLabel productTitle = new JLabel(article.getNom().toUpperCase());
+        productTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        productTitle.setForeground(AppTheme.TEXT_WHITE);
+        productTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         JPanel prixPanel = new JPanel();
-        prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.Y_AXIS));
-        prixPanel.setBackground(Color.WHITE);
+        prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.X_AXIS));
+        prixPanel.setBackground(AppTheme.BACKGROUND_DARK);
         prixPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        prixPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        prixPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         
-        // Vérifier si l'article a une promotion
-        Promotion promotion = article.getPromotion();
-        
-        if (promotion != null) {
-            // Afficher le prix original barré en rouge
-            JPanel originalPricePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            originalPricePanel.setBackground(Color.WHITE);
-            originalPricePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        if (article.getStock() <= 0) {
+            JLabel prixLabel = new JLabel("ÉPUISÉ");
+            prixLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            prixLabel.setForeground(new Color(220, 53, 69));
+            prixPanel.add(prixLabel);
+        } else if (article.getPromotion() != null) {
+            JLabel prixOriginalLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
+            prixOriginalLabel.setForeground(AppTheme.TEXT_GRAY);
+            prixOriginalLabel.setFont(new Font("Arial", Font.PLAIN, 18));
             
-            JLabel prixOriginalLabel = new JLabel("Prix: ");
-            prixOriginalLabel.setFont(new Font("Arial", Font.BOLD, 16));
-            prixOriginalLabel.setForeground(Color.decode("#212529"));
-            
-            // Prix original barré en rouge
-            JLabel prixOriginalValeur = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
-            prixOriginalValeur.setFont(new Font("Arial", Font.BOLD, 16));
-            prixOriginalValeur.setForeground(Color.RED);
-            
-            // Appliquer le style barré
             Map<TextAttribute, Object> attributes = new HashMap<>();
             attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
-            prixOriginalValeur.setFont(prixOriginalValeur.getFont().deriveFont(attributes));
+            prixOriginalLabel.setFont(prixOriginalLabel.getFont().deriveFont(attributes));
             
-            originalPricePanel.add(prixOriginalLabel);
-            originalPricePanel.add(prixOriginalValeur);
-            prixPanel.add(originalPricePanel);
+            double prixPromo = article.getPromotion().calculerPrixPromo(article.getPrixUnitaire());
+            JLabel prixPromoLabel = new JLabel(String.format(" %.2f €", prixPromo));
+            prixPromoLabel.setForeground(AppTheme.TEXT_WHITE);
+            prixPromoLabel.setFont(new Font("Arial", Font.BOLD, 22));
             
-            // Afficher le prix promotionnel
-            JPanel promoPricePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            promoPricePanel.setBackground(Color.WHITE);
-            promoPricePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            JLabel prixPromoLabel = new JLabel("Prix promo: ");
-            prixPromoLabel.setFont(new Font("Arial", Font.BOLD, 18));
-            prixPromoLabel.setForeground(Color.decode("#28a745"));
-            
-            // Calculer le prix après promotion
-            double prixPromo = promotion.calculerPrixPromo(article.getPrixUnitaire());
-            JLabel prixPromoValeur = new JLabel(String.format("%.2f €", prixPromo));
-            prixPromoValeur.setFont(new Font("Arial", Font.BOLD, 18));
-            prixPromoValeur.setForeground(Color.decode("#28a745"));
-            
-            promoPricePanel.add(prixPromoLabel);
-            promoPricePanel.add(prixPromoValeur);
-            prixPanel.add(promoPricePanel);
-            
-            // Afficher le pourcentage de réduction
-            JLabel reductionLabel = new JLabel("Économisez " + promotion.getPourcentage() + "%");
-            reductionLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            reductionLabel.setForeground(Color.decode("#dc3545"));
-            reductionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            prixPanel.add(reductionLabel);
+            prixPanel.add(prixOriginalLabel);
+            prixPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+            prixPanel.add(prixPromoLabel);
         } else {
-            // Afficher le prix normal
-            JLabel prixLabel = new JLabel("Prix: " + String.format("%.2f €", article.getPrixUnitaire()));
-            prixLabel.setFont(new Font("Arial", Font.BOLD, 18));
-            prixLabel.setForeground(Color.decode("#212529"));
-            prixLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            JLabel prixLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
+            prixLabel.setFont(new Font("Arial", Font.BOLD, 22));
+            prixLabel.setForeground(AppTheme.TEXT_WHITE);
             prixPanel.add(prixLabel);
         }
-
-        // Informations sur le prix en vrac
+        
         JPanel vracPanel = new JPanel();
         vracPanel.setLayout(new BoxLayout(vracPanel, BoxLayout.Y_AXIS));
-        vracPanel.setBackground(Color.WHITE);
+        vracPanel.setBackground(AppTheme.BACKGROUND_DARK);
         vracPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        vracPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        vracPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
-        JLabel vracTitleLabel = new JLabel("Prix en vrac:");
-        vracTitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        vracTitleLabel.setForeground(Color.decode("#28a745"));
-        vracTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        System.out.println("Article: " + article.getNom() + ", Quantité vrac: " + article.getQuantiteVrac() + ", Prix vrac: " + article.getPrixVrac());
         
         if (article.getQuantiteVrac() > 0) {
-            JLabel vracPriceLabel = new JLabel(String.format("%.2f € par unité à partir de %d unités", 
-                    article.getPrixVrac(), article.getQuantiteVrac()));
-            vracPriceLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            vracPriceLabel.setForeground(Color.decode("#212529"));
+            JLabel vracTitleLabel = new JLabel("VENTE EN VRAC");
+            vracTitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            vracTitleLabel.setForeground(AppTheme.TEXT_WHITE);
+            vracTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            JLabel vracQuantityLabel = new JLabel(String.format("À PARTIR DE %d UNITÉS", article.getQuantiteVrac()));
+            vracQuantityLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            vracQuantityLabel.setForeground(AppTheme.TEXT_GRAY);
+            vracQuantityLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            JLabel vracPriceLabel = new JLabel(String.format("PRIX UNITAIRE: %.2f €", article.getPrixVrac()));
+            vracPriceLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            vracPriceLabel.setForeground(AppTheme.TEXT_WHITE);
             vracPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
-            JLabel economyLabel = new JLabel(String.format("Économisez %.2f € par unité", 
-                    (article.getPrixUnitaire() - article.getPrixVrac()) / 100.0));
-            economyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            economyLabel.setForeground(Color.decode("#dc3545"));
+            double economie = article.getPrixUnitaire() - article.getPrixVrac();
+            JLabel economyLabel = new JLabel(String.format("ÉCONOMIE: %.2f € PAR UNITÉ", economie));
+            economyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+            economyLabel.setForeground(new Color(40, 167, 69)); 
             economyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
             vracPanel.add(vracTitleLabel);
+            vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+            vracPanel.add(vracQuantityLabel);
+            vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             vracPanel.add(vracPriceLabel);
+            vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             vracPanel.add(economyLabel);
         } else {
-            JLabel noVracLabel = new JLabel("Pas de quantité vrac pour ce produit");
-            noVracLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            noVracLabel.setForeground(Color.decode("#6c757d"));
+            JLabel noVracLabel = new JLabel("PAS DE VENTE EN VRAC DISPONIBLE");
+            noVracLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+            noVracLabel.setForeground(AppTheme.TEXT_GRAY);
             noVracLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            vracPanel.add(vracTitleLabel);
             vracPanel.add(noVracLabel);
         }
         
-        // Stock avec style
-        JLabel stockLabel = new JLabel("En stock: " + article.getStock() + " unités");
-        stockLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        stockLabel.setForeground(article.getStock() > 0 ? Color.decode("#28a745") : Color.decode("#dc3545"));
+        JLabel stockLabel = new JLabel(article.getStock() > 0 
+                ? "EN STOCK: " + article.getStock() + " UNITÉS" 
+                : "RUPTURE DE STOCK");
+        stockLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        stockLabel.setForeground(article.getStock() > 0 ? new Color(40, 167, 69) : new Color(220, 53, 69));
         stockLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stockLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
-
-        // Spinner pour la quantité
+        stockLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        
         JPanel quantityPanel = new JPanel();
         quantityPanel.setLayout(new BoxLayout(quantityPanel, BoxLayout.X_AXIS));
-        quantityPanel.setBackground(Color.WHITE);
+        quantityPanel.setBackground(AppTheme.BACKGROUND_DARK);
         quantityPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        quantityPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        quantityPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
         
-        JLabel quantityLabel = new JLabel("Quantité: ");
+        JLabel quantityLabel = new JLabel("QUANTITÉ: ");
         quantityLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        quantityLabel.setForeground(Color.decode("#495057"));
+        quantityLabel.setForeground(AppTheme.TEXT_WHITE);
         
         SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, article.getStock(), 1);
-        JSpinner quantitySpinner = new JSpinner(spinnerModel);
+        quantitySpinner = new JSpinner(spinnerModel); 
         quantitySpinner.setPreferredSize(new Dimension(80, 30));
         ((JSpinner.DefaultEditor) quantitySpinner.getEditor()).getTextField().setFont(new Font("Arial", Font.PLAIN, 14));
+        ((JSpinner.DefaultEditor) quantitySpinner.getEditor()).getTextField().setBackground(AppTheme.BACKGROUND_MEDIUM);
+        ((JSpinner.DefaultEditor) quantitySpinner.getEditor()).getTextField().setForeground(AppTheme.TEXT_WHITE);
         
         quantityPanel.add(quantityLabel);
         quantityPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         quantityPanel.add(quantitySpinner);
         
-        // Bouton ajouter au panier
-        addToCartButton = new JButton("Ajouter au panier");
-        addToCartButton.setFont(new Font("Arial", Font.BOLD, 16));
-        addToCartButton.setForeground(Color.WHITE);
-        addToCartButton.setBackground(Color.decode("#007bff"));
-        addToCartButton.setFocusPainted(false);
-        addToCartButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
-        addToCartButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addToCartButton = new JButton("AJOUTER AU PANIER");
+        AppTheme.styleButton(addToCartButton, true);
         addToCartButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Description du produit
-        JLabel descriptionTitle = new JLabel("Description");
+        JLabel descriptionTitle = new JLabel("DESCRIPTION");
         descriptionTitle.setFont(new Font("Arial", Font.BOLD, 18));
-        descriptionTitle.setForeground(Color.decode("#343a40"));
+        descriptionTitle.setForeground(AppTheme.TEXT_WHITE);
         descriptionTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        descriptionTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        descriptionTitle.setBorder(BorderFactory.createEmptyBorder(30, 0, 15, 0));
 
         JTextArea descriptionArea = new JTextArea();
         descriptionArea.setText(article.getDescription() != null ? article.getDescription() : "Aucune description disponible.");
         descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        descriptionArea.setForeground(Color.decode("#495057"));
+        descriptionArea.setForeground(AppTheme.TEXT_GRAY);
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
         descriptionArea.setEditable(false);
-        descriptionArea.setBackground(Color.WHITE);
+        descriptionArea.setBackground(AppTheme.BACKGROUND_DARK);
         descriptionArea.setAlignmentX(Component.LEFT_ALIGNMENT);
         descriptionArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
-        // Ajouter les composants au panel d'informations
+        infoPanel.add(productTitle);
         infoPanel.add(prixPanel);
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         infoPanel.add(vracPanel);
         infoPanel.add(stockLabel);
-        infoPanel.add(quantityPanel);
-        infoPanel.add(addToCartButton);
+        
+        if (article.getStock() > 0) {
+            infoPanel.add(quantityPanel);
+            infoPanel.add(addToCartButton);
+        } else {
+            JButton notifyButton = new JButton("NOTIFIER QUAND DISPONIBLE");
+            AppTheme.styleButton(notifyButton, false);
+            notifyButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+            infoPanel.add(notifyButton);
+        }
+        
         infoPanel.add(descriptionTitle);
         infoPanel.add(descriptionArea);
 
-        // Ajouter les composants au panel central
         center.add(imagePanel);
         center.add(infoPanel);
 
-        // Panel de titre
         JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBackground(AppTheme.BACKGROUND_DARK);
         titlePanel.add(title, BorderLayout.NORTH);
         titlePanel.add(marqueLabel, BorderLayout.CENTER);
 
-        // Assembler tous les panels
         mainPanel.add(topPanel, BorderLayout.NORTH);
-        mainPanel.add(titlePanel, BorderLayout.CENTER);
         mainPanel.add(center, BorderLayout.CENTER);
 
-        // Ajouter le panel principal avec scrolling
         JScrollPane scrollPane = new JScrollPane(mainPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getViewport().setBackground(AppTheme.BACKGROUND_DARK);
+        
+        scrollPane.getVerticalScrollBar().setUI(new view.theme.ModernScrollBarUI());
 
         add(scrollPane, BorderLayout.CENTER);
         revalidate();
@@ -302,7 +271,21 @@ public class ArticleDetailView extends JPanel {
     
     public void setAddToCartAction(ActionListener listener) {
         if (addToCartButton != null) {
+            for (ActionListener al : addToCartButton.getActionListeners()) {
+                addToCartButton.removeActionListener(al);
+            }
             addToCartButton.addActionListener(listener);
         }
+    }
+    
+    public int getSelectedQuantity() {
+        if (quantitySpinner != null) {
+            return (Integer) quantitySpinner.getValue();
+        }
+        return 1; 
+    }
+    
+    public Article getCurrentArticle() {
+        return currentArticle;
     }
 }

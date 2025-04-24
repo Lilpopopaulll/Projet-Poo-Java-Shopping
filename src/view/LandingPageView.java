@@ -1,6 +1,7 @@
 package view;
 
 import controller.ArticleClickListener;
+import view.theme.AppTheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,7 @@ public class LandingPageView extends JPanel {
     
     public LandingPageView() {
         setLayout(new BorderLayout());
-        setBackground(Color.decode("#F5F5F5"));
+        setBackground(AppTheme.BACKGROUND_DARK);
         
         // Créer la bannière hero
         heroBannerView = new HeroBannerView();
@@ -30,7 +31,7 @@ public class LandingPageView extends JPanel {
         // Créer un panneau pour contenir tous les éléments
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.decode("#F5F5F5"));
+        contentPanel.setBackground(AppTheme.BACKGROUND_DARK);
         
         // Ajouter les composants au panneau de contenu
         contentPanel.add(heroBannerView);
@@ -42,6 +43,10 @@ public class LandingPageView extends JPanel {
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(AppTheme.BACKGROUND_DARK);
+        
+        // Appliquer le style moderne à la scrollbar
+        scrollPane.getVerticalScrollBar().setUI(new view.theme.ModernScrollBarUI());
         
         // Ajouter un écouteur de molette de souris pour permettre le défilement partout
         addMouseWheelListener(new GlobalScrollListener());
