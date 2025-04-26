@@ -123,7 +123,7 @@ public class PanierController implements PanierListener, ArticleClickListener {
         double prixVrac = article.getPrixVrac();
         int quantiteVrac = article.getQuantiteVrac();
         
-        int prixApplique;
+        double prixApplique;
         
         // Vérifier si la quantité vrac est supérieure à 0 pour éviter la division par zéro
         if (quantiteVrac > 0 && nouvelleQuantite >= quantiteVrac) {
@@ -132,17 +132,18 @@ public class PanierController implements PanierListener, ArticleClickListener {
             int uniteRestantes = nouvelleQuantite % quantiteVrac;
             
             // Calculer le prix total (lots en vrac + unités restantes au prix normal)
-            double prixTotal = (nombreLotsVrac * quantiteVrac * prixVrac) + (uniteRestantes * prixUnitaire);
+            double prixTotal = (nombreLotsVrac * prixVrac) + (uniteRestantes * prixUnitaire);
             
             // Calculer le prix moyen par unité
-            prixApplique = (int) Math.round(prixTotal / nouvelleQuantite);
+            prixApplique = prixTotal / nouvelleQuantite;
             
+            System.out.println("Article: " + article.getNom() + ", Quantité vrac: " + quantiteVrac + ", Prix vrac: " + prixVrac);
             System.out.println("Prix appliqué: " + prixApplique + " (moyenne pondérée de " + 
-                               nombreLotsVrac + " lots de " + quantiteVrac + " au prix de " + prixVrac + 
+                               nombreLotsVrac + " lots au prix de " + prixVrac + 
                                " et " + uniteRestantes + " unités au prix de " + prixUnitaire + ")");
         } else {
             // Appliquer le prix unitaire standard
-            prixApplique = (int) prixUnitaire;
+            prixApplique = prixUnitaire;
         }
 
         if (ligneExistante != null) {
@@ -157,7 +158,7 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 article,
                 quantite,
                 prixApplique,
-                0  // Pas de remise par défaut
+                0.0  // Pas de remise par défaut
             );
 
             // Ajouter la ligne au panier

@@ -37,8 +37,8 @@ public class LigneCommandeDAO {
                 stmt.setInt(1, ligneCommande.getIdCommande());
                 stmt.setInt(2, ligneCommande.getIdArticle());
                 stmt.setInt(3, ligneCommande.getQuantite());
-                stmt.setInt(4, ligneCommande.getPrixApplique());
-                stmt.setInt(5, ligneCommande.getRemiseAppliquee());
+                stmt.setDouble(4, ligneCommande.getPrixApplique());
+                stmt.setDouble(5, ligneCommande.getRemiseAppliquee());
                 
                 stmt.executeUpdate();
             }
@@ -62,8 +62,8 @@ public class LigneCommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idArticle"),
                     rs.getInt("quantité"),
-                    rs.getInt("prixAppliqué"),
-                    rs.getInt("remiseAppliqué")
+                    rs.getDouble("prixAppliqué"),
+                    rs.getDouble("remiseAppliqué")
                 );
                 
                 // Charger l'article associé
@@ -93,8 +93,8 @@ public class LigneCommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idArticle"),
                     rs.getInt("quantité"),
-                    rs.getInt("prixAppliqué"),
-                    rs.getInt("remiseAppliqué")
+                    rs.getDouble("prixAppliqué"),
+                    rs.getDouble("remiseAppliqué")
                 );
                 
                 // Charger l'article associé
@@ -127,8 +127,8 @@ public class LigneCommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idArticle"),
                     rs.getInt("quantité"),
-                    rs.getInt("prixAppliqué"),
-                    rs.getInt("remiseAppliqué")
+                    rs.getDouble("prixAppliqué"),
+                    rs.getDouble("remiseAppliqué")
                 );
                 
                 // Créer l'article avec les données de la requête
@@ -160,8 +160,8 @@ public class LigneCommandeDAO {
                 "UPDATE lignecommande SET quantité = ?, prixAppliqué = ?, remiseAppliqué = ? WHERE idCommande = ? AND idArticle = ?"
             );
             stmt.setInt(1, ligneCommande.getQuantite());
-            stmt.setInt(2, ligneCommande.getPrixApplique());
-            stmt.setInt(3, ligneCommande.getRemiseAppliquee());
+            stmt.setDouble(2, ligneCommande.getPrixApplique());
+            stmt.setDouble(3, ligneCommande.getRemiseAppliquee());
             stmt.setInt(4, ligneCommande.getIdCommande());
             stmt.setInt(5, ligneCommande.getIdArticle());
             

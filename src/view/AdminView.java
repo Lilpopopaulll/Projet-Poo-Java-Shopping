@@ -23,10 +23,12 @@ public class AdminView extends JPanel {
     private JButton rechercheButton;
     private JButton articlesNavButton;
     private JButton usersNavButton;
+    private JButton statsNavButton; // Nouveau bouton pour les statistiques
     private JButton deconnexionButton;
     private JPanel contentPanel;
     private CardLayout cardLayout;
     private UserManagementView userManagementView;
+    private StatisticsView statisticsView; // Nouvelle vue pour les statistiques
 
     /**
      * Constructeur
@@ -49,6 +51,10 @@ public class AdminView extends JPanel {
         userManagementView = new UserManagementView();
         contentPanel.add(userManagementView, "users");
         
+        // Créer le panneau de statistiques (sera initialisé plus tard)
+        statisticsView = new StatisticsView();
+        contentPanel.add(statisticsView, "stats");
+        
         // Créer les boutons de navigation
         articlesNavButton = new JButton("Gestion Articles");
         articlesNavButton.setBackground(new Color(0, 123, 255)); // Bleu pour le bouton actif par défaut
@@ -61,6 +67,12 @@ public class AdminView extends JPanel {
         usersNavButton.setForeground(Color.WHITE);
         usersNavButton.setFont(new Font("Arial", Font.BOLD, 14));
         usersNavButton.setFocusPainted(false);
+        
+        statsNavButton = new JButton("Statistiques");
+        statsNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
+        statsNavButton.setForeground(Color.WHITE);
+        statsNavButton.setFont(new Font("Arial", Font.BOLD, 14));
+        statsNavButton.setFocusPainted(false);
         
         // Afficher le panneau des articles par défaut
         cardLayout.show(contentPanel, "articles");
@@ -200,7 +212,7 @@ public class AdminView extends JPanel {
         
         return panel;
     }
-
+    
     /**
      * Afficher la liste des articles
      * @param articles Liste des articles à afficher
@@ -308,6 +320,14 @@ public class AdminView extends JPanel {
     }
     
     /**
+     * Définir l'écouteur pour le bouton Statistiques dans la barre de navigation
+     * @param listener L'écouteur à définir
+     */
+    public void setStatsNavButtonListener(ActionListener listener) {
+        statsNavButton.addActionListener(listener);
+    }
+    
+    /**
      * Définir l'écouteur pour le bouton Déconnexion dans la barre de navigation
      * @param listener L'écouteur à définir
      */
@@ -336,6 +356,7 @@ public class AdminView extends JPanel {
         cardLayout.show(contentPanel, "articles");
         articlesNavButton.setBackground(new Color(0, 123, 255)); // Bleu pour le bouton actif
         usersNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
+        statsNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
     }
     
     /**
@@ -345,14 +366,17 @@ public class AdminView extends JPanel {
         cardLayout.show(contentPanel, "users");
         usersNavButton.setBackground(new Color(0, 123, 255)); // Bleu pour le bouton actif
         articlesNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
+        statsNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
     }
     
     /**
-     * Récupérer la vue de gestion des utilisateurs
-     * @return La vue de gestion des utilisateurs
+     * Afficher le panneau de statistiques
      */
-    public UserManagementView getUserManagementView() {
-        return userManagementView;
+    public void showStatsPanel() {
+        cardLayout.show(contentPanel, "stats");
+        statsNavButton.setBackground(new Color(0, 123, 255)); // Bleu pour le bouton actif
+        articlesNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
+        usersNavButton.setBackground(new Color(73, 80, 87)); // Gris pour le bouton inactif
     }
     
     /**
@@ -372,11 +396,35 @@ public class AdminView extends JPanel {
     }
     
     /**
+     * Récupérer le bouton Statistiques pour l'ajouter à la barre de navigation principale
+     * @return Le bouton Statistiques
+     */
+    public JButton getStatsNavButton() {
+        return statsNavButton;
+    }
+    
+    /**
      * Récupérer le bouton Déconnexion pour l'ajouter à la barre de navigation principale
      * @return Le bouton Déconnexion
      */
     public JButton getDeconnexionButton() {
         return deconnexionButton;
+    }
+    
+    /**
+     * Récupérer la vue de gestion des utilisateurs
+     * @return La vue de gestion des utilisateurs
+     */
+    public UserManagementView getUserManagementView() {
+        return userManagementView;
+    }
+    
+    /**
+     * Récupérer la vue de statistiques
+     * @return La vue de statistiques
+     */
+    public StatisticsView getStatisticsView() {
+        return statisticsView;
     }
     
     /**

@@ -4,12 +4,12 @@ public class LigneCommande {
     private int idCommande;
     private int idArticle;
     private int quantite;
-    private int prixApplique;
-    private int remiseAppliquee;
+    private double prixApplique;
+    private double remiseAppliquee;
     private Article article; // Référence à l'article pour faciliter l'affichage
 
     // Constructeur
-    public LigneCommande(int idCommande, int idArticle, int quantite, int prixApplique, int remiseAppliquee) {
+    public LigneCommande(int idCommande, int idArticle, int quantite, double prixApplique, double remiseAppliquee) {
         this.idCommande = idCommande;
         this.idArticle = idArticle;
         this.quantite = quantite;
@@ -18,7 +18,7 @@ public class LigneCommande {
     }
 
     // Constructeur avec article
-    public LigneCommande(int idCommande, Article article, int quantite, int prixApplique, int remiseAppliquee) {
+    public LigneCommande(int idCommande, Article article, int quantite, double prixApplique, double remiseAppliquee) {
         this.idCommande = idCommande;
         this.idArticle = article.getIdArticle();
         this.article = article;
@@ -52,19 +52,19 @@ public class LigneCommande {
         this.quantite = quantite;
     }
 
-    public int getPrixApplique() {
+    public double getPrixApplique() {
         return prixApplique;
     }
 
-    public void setPrixApplique(int prixApplique) {
+    public void setPrixApplique(double prixApplique) {
         this.prixApplique = prixApplique;
     }
 
-    public int getRemiseAppliquee() {
+    public double getRemiseAppliquee() {
         return remiseAppliquee;
     }
 
-    public void setRemiseAppliquee(int remiseAppliquee) {
+    public void setRemiseAppliquee(double remiseAppliquee) {
         this.remiseAppliquee = remiseAppliquee;
     }
 
@@ -80,7 +80,7 @@ public class LigneCommande {
     }
 
     // Méthodes utilitaires
-    public int getSousTotal() {
+    public double getSousTotal() {
         return this.quantite * this.prixApplique;
     }
 

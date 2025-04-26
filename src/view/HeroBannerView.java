@@ -2,12 +2,14 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import view.theme.AppTheme;
 
 public class HeroBannerView extends JPanel {
     
-    private final String title = "CUSTOMIZATION";
-    private final String slogan = "CREATE YOUR OWN UNIQUE LOOK";
+    private final String title = "ShPOOpping";
+    private final String slogan = "ACHETEZ LES MEILLEURS PIECES AUX MEILLEURS PRIX";
+    private JButton shopButton;
     
     public HeroBannerView() {
         setLayout(new BorderLayout());
@@ -40,10 +42,10 @@ public class HeroBannerView extends JPanel {
         
         // Ajout d'un texte descriptif
         JTextArea descriptionText = new JTextArea(
-            "Each piece is hand-customized to your specifications. Our designs " +
-            "combine street style with high-end craftsmanship for a unique look " +
-            "that sets you apart from the crowd."
-        );
+    "Chaque pièce associe le style urbain à un savoir-faire haut de gamme, " +
+    "offrant un look unique qui vous distingue de la foule."
+);
+
         descriptionText.setFont(new Font("Arial", Font.PLAIN, 16));
         descriptionText.setForeground(AppTheme.TEXT_GRAY);
         descriptionText.setBackground(AppTheme.BACKGROUND_DARK);
@@ -53,8 +55,8 @@ public class HeroBannerView extends JPanel {
         descriptionText.setAlignmentX(Component.LEFT_ALIGNMENT);
         descriptionText.setMaximumSize(new Dimension(600, 100));
         
-        // Bouton "SHOP NOW"
-        JButton shopButton = new JButton("SHOP NOW");
+        // Bouton "ACHETER"
+        shopButton = new JButton("ACHETER");
         shopButton.setFont(new Font("Arial", Font.BOLD, 16));
         shopButton.setForeground(AppTheme.TEXT_WHITE);
         shopButton.setBackground(AppTheme.BACKGROUND_DARK);
@@ -80,5 +82,13 @@ public class HeroBannerView extends JPanel {
         
         // Ajout des éléments au panneau principal
         add(centerPanel, BorderLayout.WEST);
+    }
+    
+    /**
+     * Définit un écouteur pour le bouton ACHETER
+     * @param listener L'écouteur à ajouter
+     */
+    public void setShopButtonListener(ActionListener listener) {
+        shopButton.addActionListener(listener);
     }
 }

@@ -11,6 +11,7 @@ public class Article {
     private String urlImage;
     private String description;
     private String categorie;
+    private int niveau; // Niveau de l'article (1 à 5 par exemple)
     private Promotion promotion; // Promotion associée à l'article
 
     public Article(int idArticle, String nom, String marque, String urlImage, double prixUnitaire,
@@ -25,6 +26,7 @@ public class Article {
         this.urlImage = urlImage;
         this.description = description;
         this.categorie = "Divers"; // Valeur par défaut
+        this.niveau = 1; // Niveau par défaut
     }
     
     public Article(int idArticle, String nom, String marque, String urlImage, double prixUnitaire,
@@ -39,6 +41,22 @@ public class Article {
         this.urlImage = urlImage;
         this.description = description;
         this.categorie = categorie;
+        this.niveau = 1; // Niveau par défaut
+    }
+    
+    public Article(int idArticle, String nom, String marque, String urlImage, double prixUnitaire,
+                   double prixVrac, int quantiteVrac, int stock, String description, String categorie, int niveau) {
+        this.idArticle = idArticle;
+        this.nom = nom;
+        this.marque = marque;
+        this.prixUnitaire = prixUnitaire;
+        this.prixVrac = prixVrac;
+        this.quantiteVrac = quantiteVrac;
+        this.stock = stock;
+        this.urlImage = urlImage;
+        this.description = description;
+        this.categorie = categorie;
+        this.niveau = niveau;
     }
 
     // Getters
@@ -52,6 +70,7 @@ public class Article {
     public String getUrlImage() { return urlImage; }
     public String getDescription() { return description; }
     public String getCategorie() { return categorie; }
+    public int getNiveau() { return niveau; }
     public Promotion getPromotion() { return promotion; }
 
     // Setters
@@ -65,6 +84,7 @@ public class Article {
     public void setUrlImage(String urlImage) { this.urlImage = urlImage; }
     public void setDescription(String description) { this.description = description; }
     public void setCategorie(String categorie) { this.categorie = categorie; }
+    public void setNiveau(int niveau) { this.niveau = niveau; }
     public void setPromotion(Promotion promotion) { this.promotion = promotion; }
     
     /**

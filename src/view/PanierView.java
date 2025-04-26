@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -97,7 +98,8 @@ public class PanierView extends JPanel {
         titlePanel.add(title, BorderLayout.CENTER);
         
         // Créer un formatteur de prix
-        NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        DecimalFormat formatPrix = (DecimalFormat) DecimalFormat.getCurrencyInstance(Locale.FRANCE);
+        formatPrix.setMinimumFractionDigits(2);
         
         // Ajouter la table dans un JScrollPane
         JScrollPane scrollPane = new JScrollPane(panierTable);

@@ -91,7 +91,7 @@ public class MainView extends JFrame {
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
         
         // Logo à gauche
-        JLabel logoLabel = new JLabel("CUSTOMIZATION");
+        JLabel logoLabel = new JLabel("ShPOOpping");
         logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
         logoLabel.setForeground(AppTheme.TEXT_WHITE);
         
@@ -287,14 +287,17 @@ public class MainView extends JFrame {
             // Ajouter les boutons de navigation de l'admin à la barre de navigation existante
             JButton articlesNavButton = adminView.getArticlesNavButton();
             JButton usersNavButton = adminView.getUsersNavButton();
+            JButton statsNavButton = adminView.getStatsNavButton(); // Nouveau bouton pour les statistiques
             
             // Configurer le style des boutons pour qu'ils correspondent à la barre blanche
             articlesNavButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
             usersNavButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            statsNavButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15)); // Style pour le bouton statistiques
             
             // Ajouter les boutons à la barre de navigation
             buttonPanel.add(articlesNavButton, 0);
             buttonPanel.add(usersNavButton, 1);
+            buttonPanel.add(statsNavButton, 2); // Ajouter le bouton statistiques
             
             // Configurer le bouton de déconnexion
             adminView.setNavDeconnexionListener(new ActionListener() {
@@ -312,6 +315,7 @@ public class MainView extends JFrame {
             // Cacher les boutons par défaut
             articlesNavButton.setVisible(false);
             usersNavButton.setVisible(false);
+            statsNavButton.setVisible(false); // Cacher le bouton statistiques par défaut
         }
         
         // Afficher la vue d'administration dans le panneau principal
@@ -322,6 +326,7 @@ public class MainView extends JFrame {
         if (adminView.getArticlesNavButton() != null) {
             adminView.getArticlesNavButton().setVisible(true);
             adminView.getUsersNavButton().setVisible(true);
+            adminView.getStatsNavButton().setVisible(true); // Afficher le bouton statistiques
             
             // Cacher le bouton de connexion standard et utiliser celui de l'admin
             loginButton.setVisible(false);
@@ -364,6 +369,7 @@ public class MainView extends JFrame {
             if (adminView != null) {
                 adminView.getArticlesNavButton().setVisible(false);
                 adminView.getUsersNavButton().setVisible(false);
+                adminView.getStatsNavButton().setVisible(false); // Cacher le bouton statistiques
                 
                 // Cacher également le bouton de déconnexion admin
                 JButton deconnexionButton = adminView.getDeconnexionButton();
@@ -389,6 +395,7 @@ public class MainView extends JFrame {
             if (adminView != null) {
                 adminView.getArticlesNavButton().setVisible(false);
                 adminView.getUsersNavButton().setVisible(false);
+                adminView.getStatsNavButton().setVisible(false); // Cacher le bouton statistiques
                 
                 // Cacher également le bouton de déconnexion admin
                 JButton deconnexionButton = adminView.getDeconnexionButton();
@@ -412,6 +419,7 @@ public class MainView extends JFrame {
             if (adminView != null) {
                 adminView.getArticlesNavButton().setVisible(true);
                 adminView.getUsersNavButton().setVisible(true);
+                adminView.getStatsNavButton().setVisible(true); // Afficher le bouton statistiques
                 
                 // Afficher également le bouton de déconnexion admin
                 JButton deconnexionButton = adminView.getDeconnexionButton();

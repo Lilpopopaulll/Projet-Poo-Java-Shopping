@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.font.TextAttribute;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +20,12 @@ public class ArticleView extends JPanel {
     private ArticleClickListener clickListener;
     private JComboBox<String> categorieComboBox;
     private ActionListener categoryFilterListener;
+    private List<String> categories;
 
     public ArticleView() {
         setLayout(new BorderLayout());
         setBackground(AppTheme.BACKGROUND_DARK);
+        this.categories = new ArrayList<>();
     }
 
     public void setArticleClickListener(ArticleClickListener listener) {
@@ -40,13 +43,29 @@ public class ArticleView extends JPanel {
     }
     
     public void setCategories(List<String> categories) {
-        // Si le combobox n'existe pas encore, il sera créé lors de l'affichage des articles
+        // Stocker les catégories pour une utilisation ultérieure
+        this.categories = new ArrayList<>(categories);
+        
+        // Si le combobox existe déjà, mettre à jour ses éléments
+        if (categorieComboBox != null) {
+            updateCategoriesComboBox();
+        }
+    }
+    
+    private void updateCategoriesComboBox() {
         if (categorieComboBox != null) {
             categorieComboBox.removeAllItems();
             categorieComboBox.addItem("TOUTES LES CATÉGORIES");
             
+            // Ajouter les catégories stockées
             for (String categorie : categories) {
                 categorieComboBox.addItem(categorie.toUpperCase());
+            }
+            
+            // Afficher les catégories dans la console pour le débogage
+            System.out.println("Catégories ajoutées au combobox:");
+            for (int i = 0; i < categorieComboBox.getItemCount(); i++) {
+                System.out.println("- " + categorieComboBox.getItemAt(i));
             }
         }
     }
@@ -73,7 +92,7 @@ public class ArticleView extends JPanel {
         headerPanel.setBorder(BorderFactory.createEmptyBorder(30, sideMargin, 30, sideMargin));
 
         // Titre
-        JLabel titleLabel = new JLabel("CUSTOMIZATION");
+        JLabel titleLabel = new JLabel("NOS ARTICLES");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
         titleLabel.setForeground(AppTheme.TEXT_WHITE);
         headerPanel.add(titleLabel, BorderLayout.WEST);
@@ -86,15 +105,17 @@ public class ArticleView extends JPanel {
         filterLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         filterLabel.setForeground(AppTheme.TEXT_GRAY);
         
-        // Créer ou réutiliser le combobox
+        // Créer ou réutiliser le combobox de catégorie
         if (categorieComboBox == null) {
             categorieComboBox = new JComboBox<>();
-            categorieComboBox.addItem("TOUTES LES CATÉGORIES");
             
             // Style du combobox
             categorieComboBox.setBackground(AppTheme.BACKGROUND_MEDIUM);
             categorieComboBox.setForeground(AppTheme.TEXT_WHITE);
             categorieComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            // Ajouter les catégories stockées
+            updateCategoriesComboBox();
             
             // Ajouter l'écouteur s'il existe
             if (categoryFilterListener != null) {
@@ -115,16 +136,16 @@ public class ArticleView extends JPanel {
         descriptionPanel.setBackground(AppTheme.BACKGROUND_DARK);
         descriptionPanel.setBorder(BorderFactory.createEmptyBorder(0, sideMargin, 40, sideMargin));
         
-        JLabel sloganLabel = new JLabel("CREATE YOUR OWN UNIQUE LOOK");
+        JLabel sloganLabel = new JLabel("TROUVEZ DES ARTICLES UNIQUES");
         sloganLabel.setFont(new Font("Arial", Font.BOLD, 24));
         sloganLabel.setForeground(AppTheme.TEXT_WHITE);
         sloganLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JTextArea descriptionText = new JTextArea(
-            "Each piece is hand-customized to your specifications. Our designs " +
-            "combine street style with high-end craftsmanship for a unique look " +
-            "that sets you apart from the crowd."
-        );
+    "Nos créations allient style urbain et savoir-faire haut de gamme " +
+    "pour offrir un look unique qui vous distingue de la foule."
+);
+
         descriptionText.setFont(new Font("Arial", Font.PLAIN, 14));
         descriptionText.setForeground(AppTheme.TEXT_GRAY);
         descriptionText.setBackground(AppTheme.BACKGROUND_DARK);

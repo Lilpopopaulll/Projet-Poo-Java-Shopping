@@ -30,6 +30,8 @@ public class AdminController {
     private final PromotionDAO promotionDAO;
     private Admin adminConnecte;
     private JFrame mainFrame;
+    private StatisticsController statisticsController; // Contrôleur pour les statistiques
+    private Connection connection; // Connexion à la base de données
 
     /**
      * Constructeur
@@ -39,14 +41,50 @@ public class AdminController {
      */
     public AdminController(AdminView adminView, Connection connection, JFrame mainFrame) {
         this.adminView = adminView;
+        this.connection = connection;
         this.articleDAO = new ArticleDAO(connection);
         this.clientDAO = new ClientDAO(connection);
         this.adminDAO = new AdminDAO(connection);
         this.promotionDAO = new PromotionDAO(connection);
         this.mainFrame = mainFrame;
         
+        // Initialiser le contrôleur de statistiques
+        this.statisticsController = new StatisticsController(connection);
+        
         // Configurer les écouteurs
         configurerEcouteurs();
+        
+        // Initialiser la vue de statistiques
+        initialiserStatistiques();
+    }
+
+    /**
+     * Initialiser la vue de statistiques
+     */
+    private void initialiserStatistiques() {
+        // Récupérer la vue de statistiques du contrôleur de statistiques
+        JPanel statisticsPanel = statisticsController.getVue();
+        
+        // Remplacer le contenu du panneau de statistiques dans la vue d'administration
+        // au lieu d'ajouter un nouveau panneau qui créerait un double header
+        adminView.getStatisticsView().removeAll();
+        adminView.getStatisticsView().setLayout(new BorderLayout());
+        adminView.getStatisticsView().add(statisticsPanel, BorderLayout.CENTER);
+        
+        // Configurer l'écouteur pour le bouton de rafraîchissement
+        adminView.getStatisticsView().definirEcouteurBoutonRafraichissement(e -> rafraichirStatistiques());
+        
+        // Rafraîchir l'affichage
+        adminView.getStatisticsView().revalidate();
+        adminView.getStatisticsView().repaint();
+    }
+    
+    /**
+     * Rafraîchir les données statistiques
+     */
+    public void rafraichirStatistiques() {
+        // Utiliser la connexion pour mettre à jour les statistiques
+        statisticsController.rafraichirDonnees();
     }
 
     /**
@@ -197,10 +235,19 @@ public class AdminController {
             }
         });
         
+        // Écouteur pour le bouton Statistiques dans la barre de navigation
+        adminView.setStatsNavButtonListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                adminView.showStatsPanel();
+                rafraichirStatistiques();
+            }
+        });
+        
         // Configurer les écouteurs pour la gestion des utilisateurs
         configurerEcouteursGestionUtilisateurs();
     }
-    
+
     /**
      * Configurer les écouteurs pour la gestion des utilisateurs
      */

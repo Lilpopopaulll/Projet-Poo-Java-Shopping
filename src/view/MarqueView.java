@@ -94,43 +94,66 @@ public class MarqueView extends JPanel {
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         
-        // Logo de la marque
+        // Logo de la marque (image)
         JLabel logoLabel = new JLabel();
-        logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         logoLabel.setPreferredSize(new Dimension(150, 150));
-        logoLabel.setMinimumSize(new Dimension(150, 150));
         logoLabel.setMaximumSize(new Dimension(150, 150));
+        logoLabel.setMinimumSize(new Dimension(150, 150));
         logoLabel.setHorizontalAlignment(JLabel.CENTER);
+        logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Charger l'image du logo
+        // Charger l'image de la marque
         try {
             String imagePath = marque.getLogo();
-            System.out.println("Chargement de l'image pour " + marque.getNom() + ": " + imagePath);
-            
             ImageIcon logoIcon = null;
             
-            // Vérifier si l'URL est au format nom.jpg (comme pour les articles)
-            if (imagePath.endsWith(".jpg") || imagePath.endsWith(".png") || imagePath.endsWith(".gif")) {
-                // Construire le chemin complet vers l'image
-                String fullPath = "src/view/images/" + imagePath;
-                System.out.println("Chemin complet de l'image: " + fullPath);
+            if (imagePath == null || imagePath.isEmpty()) {
+                // Utiliser le nom de la marque comme nom de fichier par défaut
+                imagePath = marque.getNom().toLowerCase().replace(" ", "_") + ".jpg";
+            }
+            
+            System.out.println("Chargement de l'image pour " + marque.getNom() + ": " + imagePath);
+            
+            // Essayer de charger l'image depuis différents chemins
+            if (!imagePath.startsWith("http")) {
+                // Essayer d'abord avec le chemin relatif
+                logoIcon = new ImageIcon("src/view/images/" + imagePath);
                 
-                // Essayer de charger l'image depuis le chemin relatif
-                java.io.File file = new java.io.File(fullPath);
-                if (file.exists()) {
-                    logoIcon = new ImageIcon(fullPath);
-                    System.out.println("Image trouvée: " + file.getAbsolutePath());
-                } else {
-                    System.out.println("Fichier non trouvé: " + file.getAbsolutePath());
-                    // Essayer avec le chemin absolu du projet
+                // Si l'image n'a pas pu être chargée, essayer avec un chemin absolu
+                if (logoIcon.getIconWidth() <= 0) {
                     String projectPath = System.getProperty("user.dir");
-                    fullPath = projectPath + "/src/view/images/" + imagePath;
-                    file = new java.io.File(fullPath);
-                    if (file.exists()) {
-                        logoIcon = new ImageIcon(fullPath);
-                        System.out.println("Image trouvée avec chemin absolu: " + file.getAbsolutePath());
-                    } else {
-                        System.out.println("Fichier non trouvé avec chemin absolu: " + file.getAbsolutePath());
+                    String fullPath = projectPath + "/src/view/images/" + imagePath;
+                    System.out.println("Chemin complet de l'image: " + fullPath);
+                    
+                    // Essayer avec différentes extensions
+                    String[] extensions = {".jpg", ".jpeg", ".png"};
+                    String baseFileName = imagePath;
+                    
+                    // Supprimer l'extension existante si présente
+                    int dotIndex = baseFileName.lastIndexOf(".");
+                    if (dotIndex > 0) {
+                        baseFileName = baseFileName.substring(0, dotIndex);
+                    }
+                    
+                    java.io.File file = null;
+                    boolean imageFound = false;
+                    
+                    // Essayer chaque extension
+                    for (String ext : extensions) {
+                        String fileNameWithExt = baseFileName + ext;
+                        fullPath = projectPath + "/src/view/images/" + fileNameWithExt;
+                        file = new java.io.File(fullPath);
+                        
+                        if (file.exists()) {
+                            logoIcon = new ImageIcon(fullPath);
+                            System.out.println("Image trouvée: " + file.getAbsolutePath());
+                            imageFound = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!imageFound) {
+                        System.out.println("Aucune image trouvée pour " + marque.getNom() + " avec les extensions testées");
                     }
                 }
             } else {

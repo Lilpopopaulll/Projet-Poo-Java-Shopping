@@ -5,6 +5,8 @@ import view.theme.AppTheme;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
@@ -50,6 +52,19 @@ public class LandingPageView extends JPanel {
         
         // Ajouter un écouteur de molette de souris pour permettre le défilement partout
         addMouseWheelListener(new GlobalScrollListener());
+        
+        // Configurer le bouton ACHETER pour faire défiler jusqu'à la section des articles
+        heroBannerView.setShopButtonListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Calculer la position de la section des articles
+                Rectangle articleBounds = articleView.getBounds();
+                articleBounds = SwingUtilities.convertRectangle(contentPanel, articleBounds, scrollPane.getViewport());
+                
+                // Faire défiler jusqu'à cette position
+                scrollPane.getViewport().setViewPosition(new Point(0, articleBounds.y));
+            }
+        });
         
         // Ajouter le scrollPane au panneau principal
         add(scrollPane, BorderLayout.CENTER);
