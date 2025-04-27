@@ -1,6 +1,7 @@
 package view;
 
 import model.Article;
+import model.Marque;
 import controller.ArticleClickListener;
 import view.theme.AppTheme;
 
@@ -26,7 +27,20 @@ public class ArticleDetailView extends JPanel {
         this.clickListener = listener;
     }
 
+    /**
+     * Affiche le détail d'un article sans information de marque spécifique
+     * @param article L'article à afficher
+     */
     public void afficherDetailArticle(Article article) {
+        afficherDetailArticle(article, null);
+    }
+    
+    /**
+     * Affiche le détail d'un article avec les informations de marque provenant de la table articleMarque
+     * @param article L'article à afficher
+     * @param marqueAssociee La marque associée à l'article dans la table articleMarque (peut être null)
+     */
+    public void afficherDetailArticle(Article article, Marque marqueAssociee) {
         removeAll();
         
         this.currentArticle = article;
@@ -53,10 +67,32 @@ public class ArticleDetailView extends JPanel {
         title.setForeground(AppTheme.TEXT_WHITE);
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
 
-        JLabel marqueLabel = new JLabel(article.getMarque().toUpperCase(), SwingConstants.CENTER);
+        // Afficher la marque de l'article
+        String marqueText = article.getMarque().toUpperCase();
+        
+        // Créer un panel pour afficher les informations de marque
+        JPanel marquePanel = new JPanel();
+        marquePanel.setLayout(new BoxLayout(marquePanel, BoxLayout.Y_AXIS));
+        marquePanel.setBackground(AppTheme.BACKGROUND_DARK);
+        marquePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JLabel marqueLabel = new JLabel(marqueText, SwingConstants.CENTER);
         marqueLabel.setFont(new Font("Arial", Font.BOLD, 18));
         marqueLabel.setForeground(AppTheme.TEXT_GRAY);
-        marqueLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        marqueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        marquePanel.add(marqueLabel);
+        
+        // Si une marque est associée via la table articleMarque, afficher cette information
+        if (marqueAssociee != null) {
+            JLabel marqueAssocieeLabel = new JLabel("Marque associée: " + marqueAssociee.getNom(), SwingConstants.CENTER);
+            marqueAssocieeLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+            marqueAssocieeLabel.setForeground(AppTheme.ACCENT_COLOR);
+            marqueAssocieeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            marquePanel.add(Box.createRigidArea(new Dimension(0, 5)));
+            marquePanel.add(marqueAssocieeLabel);
+        }
+        
+        marquePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
         JPanel center = new JPanel();
         center.setLayout(new BoxLayout(center, BoxLayout.X_AXIS));
@@ -97,104 +133,103 @@ public class ArticleDetailView extends JPanel {
         productTitle.setForeground(AppTheme.TEXT_WHITE);
         productTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         
+        // Afficher le prix
         JPanel prixPanel = new JPanel();
-        prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.X_AXIS));
+        prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.Y_AXIS));
         prixPanel.setBackground(AppTheme.BACKGROUND_DARK);
         prixPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        prixPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+        prixPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         
-        if (article.getStock() <= 0) {
-            JLabel prixLabel = new JLabel("ÉPUISÉ");
-            prixLabel.setFont(new Font("Arial", Font.BOLD, 18));
-            prixLabel.setForeground(new Color(220, 53, 69));
-            prixPanel.add(prixLabel);
-        } else if (article.getPromotion() != null) {
-            JLabel prixOriginalLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
-            prixOriginalLabel.setForeground(AppTheme.TEXT_GRAY);
-            prixOriginalLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        // Vérifier si l'article a une promotion
+        double prixAffiche = article.getPrixUnitaire();
+        double promotion = 0;
+        
+        if (article.getPromotion() != null) {
+            promotion = article.getPromotion().getPourcentage();
+            prixAffiche = article.getPrixApresPromotion();
+        }
+        
+        JLabel prixLabel = new JLabel(String.format("%.2f €", prixAffiche));
+        prixLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        prixLabel.setForeground(AppTheme.TEXT_WHITE);
+        prixLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        prixPanel.add(prixLabel);
+        
+        if (promotion > 0) {
+            double prixOriginal = prixAffiche / (1 - promotion / 100);
             
+            JLabel prixOriginalLabel = new JLabel(String.format("%.2f €", prixOriginal));
+            prixOriginalLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+            prixOriginalLabel.setForeground(AppTheme.TEXT_GRAY);
+            prixOriginalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            // Appliquer un style barré au prix original
             Map<TextAttribute, Object> attributes = new HashMap<>();
             attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
             prixOriginalLabel.setFont(prixOriginalLabel.getFont().deriveFont(attributes));
             
-            double prixPromo = article.getPromotion().calculerPrixPromo(article.getPrixUnitaire());
-            JLabel prixPromoLabel = new JLabel(String.format(" %.2f €", prixPromo));
-            prixPromoLabel.setForeground(AppTheme.TEXT_WHITE);
-            prixPromoLabel.setFont(new Font("Arial", Font.BOLD, 22));
+            JLabel promotionLabel = new JLabel(String.format("-%.0f%%", promotion));
+            promotionLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            promotionLabel.setForeground(AppTheme.ACCENT_COLOR);
+            promotionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
             prixPanel.add(prixOriginalLabel);
-            prixPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-            prixPanel.add(prixPromoLabel);
-        } else {
-            JLabel prixLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
-            prixLabel.setFont(new Font("Arial", Font.BOLD, 22));
-            prixLabel.setForeground(AppTheme.TEXT_WHITE);
-            prixPanel.add(prixLabel);
+            prixPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+            prixPanel.add(promotionLabel);
         }
         
+        // Afficher les informations de vrac si disponibles
         JPanel vracPanel = new JPanel();
         vracPanel.setLayout(new BoxLayout(vracPanel, BoxLayout.Y_AXIS));
         vracPanel.setBackground(AppTheme.BACKGROUND_DARK);
         vracPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         vracPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
-        
         if (article.getQuantiteVrac() > 0) {
-            JLabel vracTitleLabel = new JLabel("VENTE EN VRAC");
+            JLabel vracTitleLabel = new JLabel("OFFRE VRAC");
             vracTitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-            vracTitleLabel.setForeground(AppTheme.TEXT_WHITE);
+            vracTitleLabel.setForeground(AppTheme.ACCENT_COLOR);
             vracTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
-            JLabel vracQuantityLabel = new JLabel(String.format("À PARTIR DE %d UNITÉS", article.getQuantiteVrac()));
-            vracQuantityLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            vracQuantityLabel.setForeground(AppTheme.TEXT_GRAY);
-            vracQuantityLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            JLabel vracPriceLabel = new JLabel(String.format("PRIX UNITAIRE: %.2f €", article.getPrixVrac()));
-            vracPriceLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            vracPriceLabel.setForeground(AppTheme.TEXT_WHITE);
-            vracPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            double economie = article.getPrixUnitaire() - article.getPrixVrac();
-            JLabel economyLabel = new JLabel(String.format("ÉCONOMIE: %.2f € PAR UNITÉ", economie));
-            economyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-            economyLabel.setForeground(new Color(40, 167, 69)); 
-            economyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            JLabel vracDescLabel = new JLabel(
+                String.format("Achetez par lot de %d pour %.2f € l'unité", 
+                    article.getQuantiteVrac(), article.getPrixVrac())
+            );
+            vracDescLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            vracDescLabel.setForeground(AppTheme.TEXT_WHITE);
+            vracDescLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
             vracPanel.add(vracTitleLabel);
             vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-            vracPanel.add(vracQuantityLabel);
-            vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-            vracPanel.add(vracPriceLabel);
-            vracPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-            vracPanel.add(economyLabel);
-        } else {
-            JLabel noVracLabel = new JLabel("PAS DE VENTE EN VRAC DISPONIBLE");
-            noVracLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-            noVracLabel.setForeground(AppTheme.TEXT_GRAY);
-            noVracLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            vracPanel.add(noVracLabel);
+            vracPanel.add(vracDescLabel);
         }
         
-        JLabel stockLabel = new JLabel(article.getStock() > 0 
-                ? "EN STOCK: " + article.getStock() + " UNITÉS" 
-                : "RUPTURE DE STOCK");
-        stockLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        stockLabel.setForeground(article.getStock() > 0 ? new Color(40, 167, 69) : new Color(220, 53, 69));
+        // Afficher le stock
+        JLabel stockLabel = new JLabel();
+        if (article.getStock() > 0) {
+            stockLabel.setText(String.format("En stock: %d", article.getStock()));
+            stockLabel.setForeground(new Color(0, 150, 0));
+        } else {
+            stockLabel.setText("RUPTURE DE STOCK");
+            stockLabel.setForeground(new Color(200, 0, 0));
+        }
+        stockLabel.setFont(new Font("Arial", Font.BOLD, 16));
         stockLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         stockLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
+        // Sélecteur de quantité
         JPanel quantityPanel = new JPanel();
         quantityPanel.setLayout(new BoxLayout(quantityPanel, BoxLayout.X_AXIS));
         quantityPanel.setBackground(AppTheme.BACKGROUND_DARK);
         quantityPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        quantityPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
+        quantityPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
-        JLabel quantityLabel = new JLabel("QUANTITÉ: ");
+        JLabel quantityLabel = new JLabel("Quantité:");
         quantityLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         quantityLabel.setForeground(AppTheme.TEXT_WHITE);
         
-        SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, article.getStock(), 1);
+        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, article.getStock(), 1);
         quantitySpinner = new JSpinner(spinnerModel); 
         quantitySpinner.setPreferredSize(new Dimension(80, 30));
         ((JSpinner.DefaultEditor) quantitySpinner.getEditor()).getTextField().setFont(new Font("Arial", Font.PLAIN, 14));
@@ -250,7 +285,7 @@ public class ArticleDetailView extends JPanel {
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(AppTheme.BACKGROUND_DARK);
         titlePanel.add(title, BorderLayout.NORTH);
-        titlePanel.add(marqueLabel, BorderLayout.CENTER);
+        titlePanel.add(marquePanel, BorderLayout.CENTER);
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(center, BorderLayout.CENTER);

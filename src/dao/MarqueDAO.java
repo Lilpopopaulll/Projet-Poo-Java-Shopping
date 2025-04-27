@@ -24,29 +24,25 @@ public class MarqueDAO {
         List<Marque> marques = new ArrayList<>();
         
         try {
-            // Méthode 1: Récupérer les marques depuis la table Marque
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Marque ORDER BY nom");
+            // Récupérer les marques depuis la table Marque
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM marque ORDER BY nom");
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
                 try {
                     int idMarque = rs.getInt("idMarque");
                     String nom = rs.getString("nom");
-                    String description = null;
-                    String urlImage = null;
+                    String urlImage = rs.getString("urlImage");
+                    String description = "Description de " + nom; // Valeur par défaut
                     
+                    // Essayer de récupérer la description si elle existe
                     try {
-                        description = rs.getString("description");
+                        String tempDesc = rs.getString("description");
+                        if (tempDesc != null && !tempDesc.isEmpty()) {
+                            description = tempDesc;
+                        }
                     } catch (SQLException ex) {
-                        // La colonne description n'existe pas, utiliser une valeur par défaut
-                        description = "Description de " + nom;
-                    }
-                    
-                    try {
-                        urlImage = rs.getString("urlImage");
-                    } catch (SQLException ex) {
-                        // La colonne urlImage n'existe pas, utiliser une valeur par défaut
-                        urlImage = "https://via.placeholder.com/150?text=" + nom;
+                        // La colonne description n'existe pas, on garde la valeur par défaut
                     }
                     
                     Marque marque = new Marque(
@@ -63,33 +59,13 @@ public class MarqueDAO {
             rs.close();
             stmt.close();
             
-            // Vérifier si la table Marque existe et contient des données
-            if (marques.isEmpty()) {
-                // Si aucune marque n'est trouvée dans la table Marque, extraire les marques des articles
-                PreparedStatement stmt2 = connection.prepareStatement(
-                    "SELECT DISTINCT marque FROM Article WHERE marque IS NOT NULL AND marque <> ''"
-                );
-                ResultSet rs2 = stmt2.executeQuery();
-                
-                while (rs2.next()) {
-                    String nomMarque = rs2.getString("marque");
-                    
-                    // Créer une marque avec un ID temporaire négatif
-                    Marque marque = new Marque(-marques.size() - 1, nomMarque, "Description de " + nomMarque, "");
-                    marques.add(marque);
-                }
-                
-                rs2.close();
-                stmt2.close();
-            }
-            
-            // Si toujours aucune marque, ajouter des marques de test
+            // Si aucune marque n'est trouvée, ajouter des marques de test
             if (marques.isEmpty()) {
                 // Ajouter quelques marques de test
-                marques.add(new Marque(1, "Nike", "Just Do It", "nike.jpg"));
-                marques.add(new Marque(2, "Adidas", "Impossible is Nothing", "adidas.jpg"));
-                marques.add(new Marque(3, "Puma", "Forever Faster", "puma.jpg"));
-                marques.add(new Marque(4, "Reebok", "Be More Human", "reebok.jpg"));
+                marques.add(new Marque(1, "Nike", "nike.jpg", "Just Do It"));
+                marques.add(new Marque(2, "Adidas", "adidas.jpg", "Impossible is Nothing"));
+                marques.add(new Marque(3, "Puma", "puma.jpg", "Forever Faster"));
+                marques.add(new Marque(4, "Reebok", "reebok.jpg", "Be More Human"));
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération des marques: " + e.getMessage());
@@ -107,7 +83,7 @@ public class MarqueDAO {
     public Marque getById(int idMarque) {
         try {
             PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM Marque WHERE idMarque = ?"
+                "SELECT * FROM marque WHERE idMarque = ?"
             );
             stmt.setInt(1, idMarque);
             ResultSet rs = stmt.executeQuery();
@@ -115,21 +91,17 @@ public class MarqueDAO {
             if (rs.next()) {
                 try {
                     String nom = rs.getString("nom");
-                    String description = null;
-                    String urlImage = null;
+                    String urlImage = rs.getString("urlImage");
+                    String description = "Description de " + nom; // Valeur par défaut
                     
+                    // Essayer de récupérer la description si elle existe
                     try {
-                        description = rs.getString("description");
+                        String tempDesc = rs.getString("description");
+                        if (tempDesc != null && !tempDesc.isEmpty()) {
+                            description = tempDesc;
+                        }
                     } catch (SQLException ex) {
-                        // La colonne description n'existe pas, utiliser une valeur par défaut
-                        description = "Description de " + nom;
-                    }
-                    
-                    try {
-                        urlImage = rs.getString("urlImage");
-                    } catch (SQLException ex) {
-                        // La colonne urlImage n'existe pas, utiliser une valeur par défaut
-                        urlImage = "https://via.placeholder.com/150?text=" + nom;
+                        // La colonne description n'existe pas, on garde la valeur par défaut
                     }
                     
                     Marque marque = new Marque(
@@ -151,14 +123,6 @@ public class MarqueDAO {
             System.err.println("Erreur lors de la récupération de la marque: " + e.getMessage());
         }
         
-        // Si la marque n'est pas trouvée, essayer de la récupérer par son nom depuis les articles
-        List<Marque> toutesMarques = getAll();
-        for (Marque marque : toutesMarques) {
-            if (marque.getIdMarque() == idMarque) {
-                return marque;
-            }
-        }
-        
         return null;
     }
     
@@ -168,13 +132,126 @@ public class MarqueDAO {
      * @return La marque correspondante ou null si non trouvée
      */
     public Marque getByName(String nomMarque) {
-        // Récupérer toutes les marques et chercher par nom
-        List<Marque> marques = getAll();
-        for (Marque marque : marques) {
-            if (marque.getNom().equalsIgnoreCase(nomMarque)) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM marque WHERE nom = ?"
+            );
+            stmt.setString(1, nomMarque);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int idMarque = rs.getInt("idMarque");
+                String nom = rs.getString("nom");
+                String urlImage = rs.getString("urlImage");
+                String description = "Description de " + nom; // Valeur par défaut
+                
+                // Essayer de récupérer la description si elle existe
+                try {
+                    String tempDesc = rs.getString("description");
+                    if (tempDesc != null && !tempDesc.isEmpty()) {
+                        description = tempDesc;
+                    }
+                } catch (SQLException ex) {
+                    // La colonne description n'existe pas, on garde la valeur par défaut
+                }
+                
+                Marque marque = new Marque(
+                    idMarque,
+                    nom,
+                    urlImage,
+                    description
+                );
+                rs.close();
+                stmt.close();
                 return marque;
             }
+            rs.close();
+            stmt.close();
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération de la marque par nom: " + e.getMessage());
         }
+        
         return null;
+    }
+    
+    /**
+     * Ajouter une nouvelle marque
+     * @param marque La marque à ajouter
+     * @return L'ID de la marque ajoutée, ou -1 en cas d'erreur
+     */
+    public int add(Marque marque) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO marque (nom, urlImage) VALUES (?, ?)",
+                PreparedStatement.RETURN_GENERATED_KEYS
+            );
+            stmt.setString(1, marque.getNom());
+            stmt.setString(2, marque.getLogo());
+            
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                stmt.close();
+                return -1;
+            }
+            
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int id = generatedKeys.getInt(1);
+                generatedKeys.close();
+                stmt.close();
+                return id;
+            } else {
+                generatedKeys.close();
+                stmt.close();
+                return -1;
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'ajout d'une marque: " + e.getMessage());
+            return -1;
+        }
+    }
+    
+    /**
+     * Mettre à jour une marque existante
+     * @param marque La marque à mettre à jour
+     * @return true si l'opération a réussi, false sinon
+     */
+    public boolean update(Marque marque) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE marque SET nom = ?, urlImage = ? WHERE idMarque = ?"
+            );
+            stmt.setString(1, marque.getNom());
+            stmt.setString(2, marque.getLogo());
+            stmt.setInt(3, marque.getIdMarque());
+            
+            int result = stmt.executeUpdate();
+            stmt.close();
+            return result > 0;
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la mise à jour d'une marque: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Supprimer une marque
+     * @param idMarque L'ID de la marque à supprimer
+     * @return true si l'opération a réussi, false sinon
+     */
+    public boolean delete(int idMarque) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "DELETE FROM marque WHERE idMarque = ?"
+            );
+            stmt.setInt(1, idMarque);
+            
+            int result = stmt.executeUpdate();
+            stmt.close();
+            return result > 0;
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la suppression d'une marque: " + e.getMessage());
+            return false;
+        }
     }
 }

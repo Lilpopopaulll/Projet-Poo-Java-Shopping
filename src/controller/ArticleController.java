@@ -1,7 +1,9 @@
 package controller;
 
 import dao.ArticleDAO;
+import dao.ArticleMarqueDAO;
 import model.Article;
+import model.Marque;
 import model.Panier;
 import view.ArticleView;
 import view.ArticleDetailView;
@@ -17,6 +19,7 @@ public class ArticleController implements ArticleClickListener {
     private final ArticleView vue;
     private final ArticleDetailView detailVue;
     private final ArticleDAO articleDAO;
+    private final ArticleMarqueDAO articleMarqueDAO;
     private final Panier panier;
     private PanierListener panierListener;
     private final Connection connection;
@@ -26,6 +29,7 @@ public class ArticleController implements ArticleClickListener {
         this.detailVue = detailVue;
         this.connection = connection;
         this.articleDAO = new ArticleDAO(connection);
+        this.articleMarqueDAO = new ArticleMarqueDAO(connection);
         this.panier = new Panier();
         this.vue.setArticleClickListener(this);
         this.detailVue.setArticleClickListener(this);
@@ -124,7 +128,11 @@ public class ArticleController implements ArticleClickListener {
     }
 
     public void afficherDetailArticle(Article article) {
-        detailVue.afficherDetailArticle(article);
+        // Récupérer la marque associée à l'article depuis la table articleMarque
+        Marque marqueAssociee = articleMarqueDAO.getMarqueByArticleId(article.getIdArticle());
+        
+        // Passer l'article et sa marque associée à la vue détaillée
+        detailVue.afficherDetailArticle(article, marqueAssociee);
         
         // Configurer le bouton d'ajout au panier
         detailVue.setAddToCartAction(new ActionListener() {
