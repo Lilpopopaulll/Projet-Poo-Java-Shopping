@@ -54,7 +54,6 @@ public class MarqueView extends JPanel {
         for (Marque marque : marques) {
             JPanel card = createMarqueCard(marque);
             marquesPanel.add(card);
-            System.out.println("Carte ajoutée pour la marque: " + marque.getNom());
         }
         
         // Ajouter le panneau des marques au panneau principal
@@ -112,8 +111,6 @@ public class MarqueView extends JPanel {
                 imagePath = marque.getNom().toLowerCase().replace(" ", "_") + ".jpg";
             }
             
-            System.out.println("Chargement de l'image pour " + marque.getNom() + ": " + imagePath);
-            
             // Essayer de charger l'image depuis différents chemins
             if (!imagePath.startsWith("http")) {
                 // Essayer d'abord avec le chemin relatif
@@ -123,7 +120,6 @@ public class MarqueView extends JPanel {
                 if (logoIcon.getIconWidth() <= 0) {
                     String projectPath = System.getProperty("user.dir");
                     String fullPath = projectPath + "/src/view/images/" + imagePath;
-                    System.out.println("Chemin complet de l'image: " + fullPath);
                     
                     // Essayer avec différentes extensions
                     String[] extensions = {".jpg", ".jpeg", ".png"};
@@ -146,14 +142,13 @@ public class MarqueView extends JPanel {
                         
                         if (file.exists()) {
                             logoIcon = new ImageIcon(fullPath);
-                            System.out.println("Image trouvée: " + file.getAbsolutePath());
                             imageFound = true;
                             break;
                         }
                     }
                     
                     if (!imageFound) {
-                        System.out.println("Aucune image trouvée pour " + marque.getNom() + " avec les extensions testées");
+                        // Aucune image trouvée, on utilisera un placeholder
                     }
                 }
             } else {
@@ -167,7 +162,6 @@ public class MarqueView extends JPanel {
                 Image resizedImg = img.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
                 logoIcon = new ImageIcon(resizedImg);
                 logoLabel.setIcon(logoIcon);
-                System.out.println("Image chargée avec succès pour " + marque.getNom());
             } else {
                 // Utiliser un texte de remplacement si l'image n'a pas pu être chargée
                 logoLabel.setText(marque.getNom().substring(0, 1).toUpperCase());
@@ -175,7 +169,6 @@ public class MarqueView extends JPanel {
                 logoLabel.setForeground(Color.WHITE);
                 logoLabel.setBackground(Color.decode("#007bff"));
                 logoLabel.setOpaque(true);
-                System.out.println("Utilisation d'une lettre comme placeholder pour " + marque.getNom());
             }
         } catch (Exception e) {
             // Utiliser un placeholder si l'image ne peut pas être chargée

@@ -107,24 +107,18 @@ public class MarqueDetailView extends JPanel {
             if (imagePath.endsWith(".jpg") || imagePath.endsWith(".png") || imagePath.endsWith(".gif")) {
                 // Construire le chemin complet vers l'image
                 String fullPath = "src/view/images/" + imagePath;
-                System.out.println("Chargement de l'image pour l'article " + article.getNom() + ": " + fullPath);
                 
                 // Essayer de charger l'image depuis le chemin relatif
                 java.io.File file = new java.io.File(fullPath);
                 if (file.exists()) {
                     imageIcon = new ImageIcon(fullPath);
-                    System.out.println("Image trouvée: " + file.getAbsolutePath());
                 } else {
-                    System.out.println("Fichier non trouvé: " + file.getAbsolutePath());
                     // Essayer avec le chemin absolu du projet
                     String projectPath = System.getProperty("user.dir");
                     fullPath = projectPath + "/src/view/images/" + imagePath;
                     file = new java.io.File(fullPath);
                     if (file.exists()) {
                         imageIcon = new ImageIcon(fullPath);
-                        System.out.println("Image trouvée avec chemin absolu: " + file.getAbsolutePath());
-                    } else {
-                        System.out.println("Fichier non trouvé avec chemin absolu: " + file.getAbsolutePath());
                     }
                 }
             } else {

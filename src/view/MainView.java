@@ -40,7 +40,7 @@ public class MainView extends JFrame {
 
     public MainView(Connection connection) {
         // Configuration de la fenêtre principale
-        setTitle("CUSTOMIZATION");
+        setTitle("ShPOOpping");
         // Définir une taille par défaut pour la fenêtre
         setSize(1200, 800);
         // Centrer la fenêtre sur l'écran
@@ -446,7 +446,6 @@ public class MainView extends JFrame {
         marqueController.setArticleClickListener(articleController);
         
         // Charger et afficher les marques
-        System.out.println("Chargement des marques...");
         marqueController.afficherMarques();
     }
 }

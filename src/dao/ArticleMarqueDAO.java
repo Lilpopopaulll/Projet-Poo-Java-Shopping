@@ -43,7 +43,7 @@ public class ArticleMarqueDAO {
                     rs.getInt("quantiteVrac"),
                     rs.getInt("stock"),
                     rs.getString("description"),
-                    rs.getString("catégorie")
+                    rs.getString("categorie")
                 );
                 articles.add(article);
             }
@@ -80,7 +80,7 @@ public class ArticleMarqueDAO {
                     rs.getInt("quantiteVrac"),
                     rs.getInt("stock"),
                     rs.getString("description"),
-                    rs.getString("catégorie")
+                    rs.getString("categorie")
                 );
                 articles.add(article);
             }

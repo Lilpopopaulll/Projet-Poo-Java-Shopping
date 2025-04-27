@@ -100,7 +100,6 @@ public class HistoriqueController implements ArticleClickListener {
             // Forcer le rafraîchissement
             mainPanel.revalidate();
             mainPanel.repaint();
-            System.out.println("Historique affiché");
         }
     }
 

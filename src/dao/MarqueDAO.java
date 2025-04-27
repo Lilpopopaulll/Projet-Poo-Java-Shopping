@@ -24,89 +24,76 @@ public class MarqueDAO {
         List<Marque> marques = new ArrayList<>();
         
         try {
-            // Méthode 1: Essayer de récupérer depuis la table Marque
-            try {
-                PreparedStatement stmt = connection.prepareStatement(
-                    "SELECT * FROM Marque ORDER BY nom"
-                );
-                ResultSet rs = stmt.executeQuery();
-
-                while (rs.next()) {
-                    try {
-                        int idMarque = rs.getInt("idMarque");
-                        String nom = rs.getString("nom");
-                        String description = null;
-                        String urlImage = null;
-                        
-                        try {
-                            description = rs.getString("description");
-                        } catch (SQLException ex) {
-                            // La colonne description n'existe pas, utiliser une valeur par défaut
-                            description = "Description de " + nom;
-                        }
-                        
-                        try {
-                            urlImage = rs.getString("urlImage");
-                        } catch (SQLException ex) {
-                            // La colonne urlImage n'existe pas, utiliser une valeur par défaut
-                            urlImage = "https://via.placeholder.com/150?text=" + nom;
-                        }
-                        
-                        Marque marque = new Marque(
-                            idMarque,
-                            nom,
-                            urlImage,
-                            description
-                        );
-                        marques.add(marque);
-                    } catch (SQLException ex) {
-                        System.err.println("Erreur lors de la création d'une marque: " + ex.getMessage());
-                    }
-                }
-                rs.close();
-                stmt.close();
-            } catch (SQLException e) {
-                System.err.println("Erreur lors de la récupération des marques depuis la table Marque: " + e.getMessage());
-            }
+            // Méthode 1: Récupérer les marques depuis la table Marque
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Marque ORDER BY nom");
+            ResultSet rs = stmt.executeQuery();
             
-            // Si aucune marque n'a été trouvée, essayer la méthode 2
+            while (rs.next()) {
+                try {
+                    int idMarque = rs.getInt("idMarque");
+                    String nom = rs.getString("nom");
+                    String description = null;
+                    String urlImage = null;
+                    
+                    try {
+                        description = rs.getString("description");
+                    } catch (SQLException ex) {
+                        // La colonne description n'existe pas, utiliser une valeur par défaut
+                        description = "Description de " + nom;
+                    }
+                    
+                    try {
+                        urlImage = rs.getString("urlImage");
+                    } catch (SQLException ex) {
+                        // La colonne urlImage n'existe pas, utiliser une valeur par défaut
+                        urlImage = "https://via.placeholder.com/150?text=" + nom;
+                    }
+                    
+                    Marque marque = new Marque(
+                        idMarque,
+                        nom,
+                        urlImage,
+                        description
+                    );
+                    marques.add(marque);
+                } catch (SQLException ex) {
+                    System.err.println("Erreur lors de la création d'une marque: " + ex.getMessage());
+                }
+            }
+            rs.close();
+            stmt.close();
+            
+            // Vérifier si la table Marque existe et contient des données
             if (marques.isEmpty()) {
-                System.out.println("Aucune marque trouvée dans la table Marque, extraction depuis les articles...");
-                
-                // Méthode 2: Extraire les marques uniques depuis la table Article
-                PreparedStatement stmt = connection.prepareStatement(
+                // Si aucune marque n'est trouvée dans la table Marque, extraire les marques des articles
+                PreparedStatement stmt2 = connection.prepareStatement(
                     "SELECT DISTINCT marque FROM Article WHERE marque IS NOT NULL AND marque <> ''"
                 );
-                ResultSet rs = stmt.executeQuery();
+                ResultSet rs2 = stmt2.executeQuery();
                 
-                int idCounter = 1;
-                while (rs.next()) {
-                    String nomMarque = rs.getString("marque");
-                    if (nomMarque != null && !nomMarque.isEmpty()) {
-                        Marque marque = new Marque(
-                            idCounter++,
-                            nomMarque,
-                            nomMarque.toLowerCase().replace(" ", "_") + ".jpg",
-                            "Marque " + nomMarque
-                        );
-                        marques.add(marque);
-                    }
+                while (rs2.next()) {
+                    String nomMarque = rs2.getString("marque");
+                    
+                    // Créer une marque avec un ID temporaire négatif
+                    Marque marque = new Marque(-marques.size() - 1, nomMarque, "Description de " + nomMarque, "");
+                    marques.add(marque);
                 }
-                rs.close();
-                stmt.close();
+                
+                rs2.close();
+                stmt2.close();
+            }
+            
+            // Si toujours aucune marque, ajouter des marques de test
+            if (marques.isEmpty()) {
+                // Ajouter quelques marques de test
+                marques.add(new Marque(1, "Nike", "Just Do It", "nike.jpg"));
+                marques.add(new Marque(2, "Adidas", "Impossible is Nothing", "adidas.jpg"));
+                marques.add(new Marque(3, "Puma", "Forever Faster", "puma.jpg"));
+                marques.add(new Marque(4, "Reebok", "Be More Human", "reebok.jpg"));
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération des marques: " + e.getMessage());
             e.printStackTrace();
-        }
-        
-        // Si toujours aucune marque, ajouter des marques de test
-        if (marques.isEmpty()) {
-            System.out.println("Aucune marque trouvée dans la base de données, ajout de marques de test");
-            marques.add(new Marque(1, "Nike", "nike.jpg", "Marque de vêtements et chaussures de sport"));
-            marques.add(new Marque(2, "Adidas", "adidas.jpg", "Marque allemande de vêtements de sport"));
-            marques.add(new Marque(3, "Puma", "puma.jpg", "Marque de vêtements et chaussures de sport"));
-            marques.add(new Marque(4, "Lacoste", "lacoste.jpg", "Marque de vêtements de luxe"));
         }
         
         return marques;

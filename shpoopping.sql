@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : sam. 26 avr. 2025 à 23:05
+-- Généré le : dim. 27 avr. 2025 à 08:31
 -- Version du serveur : 8.2.0
 -- Version de PHP : 8.2.25
 
@@ -106,8 +106,28 @@ CREATE TABLE IF NOT EXISTS `articlemarque` (
   `id_article` int NOT NULL,
   `id_marque` int NOT NULL,
   PRIMARY KEY (`id_article`,`id_marque`),
-  KEY `id_marque` (`id_marque`)
+  KEY `fk_marque` (`id_marque`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `articlemarque`
+--
+
+INSERT INTO `articlemarque` (`id_article`, `id_marque`) VALUES
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 1),
+(5, 1),
+(6, 1),
+(7, 1),
+(8, 1),
+(9, 1),
+(10, 1),
+(12, 2),
+(13, 4),
+(14, 4),
+(20, 3);
 
 -- --------------------------------------------------------
 

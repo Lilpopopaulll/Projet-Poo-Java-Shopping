@@ -14,18 +14,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import controller.ArticleClickListener;
+import java.io.File;
 
 public class ArticleView extends JPanel {
     private JPanel articlePanel;
     private ArticleClickListener clickListener;
     private JComboBox<String> categorieComboBox;
+    private JComboBox<String> marqueComboBox;
+    private JComboBox<String> prixComboBox;
     private ActionListener categoryFilterListener;
+    private ActionListener marqueFilterListener;
+    private ActionListener prixFilterListener;
     private List<String> categories;
+    private List<String> marques;
 
     public ArticleView() {
         setLayout(new BorderLayout());
         setBackground(AppTheme.BACKGROUND_DARK);
         this.categories = new ArrayList<>();
+        this.marques = new ArrayList<>();
     }
 
     public void setArticleClickListener(ArticleClickListener listener) {
@@ -41,11 +48,37 @@ public class ArticleView extends JPanel {
         }
     }
     
+    public void setMarqueFilterListener(ActionListener listener) {
+        this.marqueFilterListener = listener;
+        
+        if (marqueComboBox != null) {
+            marqueComboBox.removeActionListener(marqueFilterListener); 
+            marqueComboBox.addActionListener(marqueFilterListener);
+        }
+    }
+    
+    public void setPrixFilterListener(ActionListener listener) {
+        this.prixFilterListener = listener;
+        
+        if (prixComboBox != null) {
+            prixComboBox.removeActionListener(prixFilterListener); 
+            prixComboBox.addActionListener(prixFilterListener);
+        }
+    }
+    
     public void setCategories(List<String> categories) {
         this.categories = new ArrayList<>(categories);
         
         if (categorieComboBox != null) {
             updateCategoriesComboBox();
+        }
+    }
+    
+    public void setMarques(List<String> marques) {
+        this.marques = new ArrayList<>(marques);
+        
+        if (marqueComboBox != null) {
+            updateMarquesComboBox();
         }
     }
     
@@ -60,11 +93,33 @@ public class ArticleView extends JPanel {
         }
     }
     
+    private void updateMarquesComboBox() {
+        if (marqueComboBox != null) {
+            marqueComboBox.removeAllItems();
+            marqueComboBox.addItem("TOUTES LES MARQUES");
+            
+            for (String marque : marques) {
+                marqueComboBox.addItem(marque.toUpperCase());
+            }
+        }
+    }
+    
     public String getSelectedCategory() {
         if (categorieComboBox != null && categorieComboBox.getSelectedIndex() > 0) {
             return ((String) categorieComboBox.getSelectedItem()).toLowerCase();
         }
         return null; 
+    }
+
+    public String getSelectedMarque() {
+        if (marqueComboBox != null && marqueComboBox.getSelectedIndex() > 0) {
+            return ((String) marqueComboBox.getSelectedItem()).toLowerCase();
+        }
+        return null; 
+    }
+    
+    public JComboBox<String> getPrixComboBox() {
+        return prixComboBox;
     }
 
     public void afficherArticles(List<Article> articles) {
@@ -106,8 +161,42 @@ public class ArticleView extends JPanel {
             }
         }
         
+        if (marqueComboBox == null) {
+            marqueComboBox = new JComboBox<>();
+            
+            marqueComboBox.setBackground(AppTheme.BACKGROUND_MEDIUM);
+            marqueComboBox.setForeground(AppTheme.TEXT_WHITE);
+            marqueComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            updateMarquesComboBox();
+            
+            if (marqueFilterListener != null) {
+                marqueComboBox.addActionListener(marqueFilterListener);
+            }
+        }
+        
+        if (prixComboBox == null) {
+            prixComboBox = new JComboBox<>();
+            
+            prixComboBox.setBackground(AppTheme.BACKGROUND_MEDIUM);
+            prixComboBox.setForeground(AppTheme.TEXT_WHITE);
+            prixComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            prixComboBox.addItem("TOUTES LES PRIX");
+            prixComboBox.addItem("0-50€");
+            prixComboBox.addItem("50-100€");
+            prixComboBox.addItem("100-200€");
+            prixComboBox.addItem("200€+");
+            
+            if (prixFilterListener != null) {
+                prixComboBox.addActionListener(prixFilterListener);
+            }
+        }
+        
         filterPanel.add(filterLabel);
         filterPanel.add(categorieComboBox);
+        filterPanel.add(marqueComboBox);
+        filterPanel.add(prixComboBox);
         
         headerPanel.add(filterPanel, BorderLayout.EAST);
         
@@ -173,11 +262,57 @@ public class ArticleView extends JPanel {
             imageLabel.setPreferredSize(new Dimension(220, 220));
             
             try {
-                String imagePath = "src/view/images/" + article.getUrlImage();
-                ImageIcon icon = new ImageIcon(imagePath);
-                Image image = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
-                imageLabel.setIcon(new ImageIcon(image));
+                // Essayer de charger l'image de l'article
+                ImageIcon imageIcon = null;
+                
+                // Construire le chemin de l'image
+                String imagePath = article.getUrlImage();
+                
+                if (imagePath != null && !imagePath.isEmpty()) {
+                    // Essayer de charger l'image spécifique de l'article
+                    File imageFile = new File("src/view/images/" + imagePath);
+                    if (imageFile.exists()) {
+                        imageIcon = new ImageIcon(imageFile.getPath());
+                    } else {
+                        // Essayer de charger l'image de la marque
+                        String marqueImage = article.getMarque().toLowerCase().replace(" ", "_") + ".jpg";
+                        File marqueImageFile = new File("src/view/images/" + marqueImage);
+                        if (marqueImageFile.exists()) {
+                            imageIcon = new ImageIcon(marqueImageFile.getPath());
+                        } else {
+                            // Essayer de charger une image par défaut basée sur la catégorie
+                            String categoryFolder = "src/view/images/categories/";
+                            File categoryDir = new File(categoryFolder);
+                            if (categoryDir.exists() && categoryDir.isDirectory()) {
+                                File[] imageFiles = categoryDir.listFiles((dir, name) -> 
+                                    name.toLowerCase().endsWith(".jpg") || 
+                                    name.toLowerCase().endsWith(".png") || 
+                                    name.toLowerCase().endsWith(".jpeg"));
+                                
+                                if (imageFiles != null && imageFiles.length > 0) {
+                                    imageIcon = new ImageIcon(imageFiles[0].getPath());
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Si l'image a été chargée, la redimensionner
+                if (imageIcon != null && imageIcon.getIconWidth() > 0) {
+                    Image img = imageIcon.getImage();
+                    Image resizedImg = img.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+                    imageIcon = new ImageIcon(resizedImg);
+                    imageLabel.setIcon(imageIcon);
+                } else {
+                    // Utiliser un placeholder si aucune image n'est disponible
+                    imageLabel.setText(article.getNom().substring(0, 1).toUpperCase());
+                    imageLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                    imageLabel.setForeground(Color.WHITE);
+                    imageLabel.setBackground(Color.decode("#007bff"));
+                    imageLabel.setOpaque(true);
+                }
             } catch (Exception e) {
+                System.err.println("Erreur lors du chargement de l'image pour " + article.getNom() + ": " + e.getMessage());
                 imageLabel.setText("NO IMAGE");
                 imageLabel.setForeground(AppTheme.TEXT_GRAY);
                 imageLabel.setFont(new Font("Arial", Font.ITALIC, 14));

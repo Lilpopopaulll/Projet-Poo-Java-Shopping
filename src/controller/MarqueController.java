@@ -86,7 +86,6 @@ public class MarqueController implements MarqueClickListener {
      */
     public void afficherMarques() {
         List<Marque> marques = marqueDAO.getAll();
-        System.out.println("MarqueController: afficherMarques - " + marques.size() + " marques récupérées");
         marqueView.afficherMarques(marques);
     }
     

@@ -112,7 +112,16 @@ public class PanierView extends JPanel {
             // Informations sur les prix
             double prixUnitaireStandard = ligne.getArticle().getPrixUnitaire();
             double prixUnitaireVrac = ligne.getArticle().getPrixVrac();
-            double prixUnitaireApplique = ligne.getPrixApplique();
+            double prixUnitaireApplique;
+            
+            // Pour l'affichage, nous utilisons le prix unitaire standard ou le prix après promotion
+            // et non le prix appliqué qui peut être le prix en vrac
+            if (ligne.getArticle().getPromotion() != null) {
+                prixUnitaireApplique = ligne.getArticle().getPrixApresPromotion();
+            } else {
+                prixUnitaireApplique = prixUnitaireStandard;
+            }
+            
             int quantite = ligne.getQuantite();
             double sousTotal = ligne.getSousTotal();
             int quantiteVrac = ligne.getArticle().getQuantiteVrac();
@@ -123,7 +132,6 @@ public class PanierView extends JPanel {
             double pourcentagePromo = 0;
 
             if (hasPromotion) {
-                sousTotal = prixUnitaireApplique * quantite;
                 prixOriginal = ligne.getArticle().getPrixUnitaire();
                 pourcentagePromo = ligne.getArticle().getPromotion().getPourcentage();
             }
@@ -153,10 +161,7 @@ public class PanierView extends JPanel {
             prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.Y_AXIS));
             prixPanel.setBackground(Color.WHITE);
 
-            // Utiliser le prix unitaire approprié pour l'affichage
-            double prixAffiche = hasPromotion ? ligne.getArticle().getPrixApresPromotion() : prixUnitaireStandard;
-            
-            JLabel prixLabel = new JLabel(formatPrix.format(prixAffiche));
+            JLabel prixLabel = new JLabel(formatPrix.format(prixUnitaireApplique));
             prixLabel.setFont(new Font("Arial", Font.BOLD, 14));
             prixLabel.setForeground(Color.decode("#212529"));
             prixPanel.add(prixLabel);
@@ -198,7 +203,7 @@ public class PanierView extends JPanel {
             sousTotalPanel.setLayout(new BoxLayout(sousTotalPanel, BoxLayout.Y_AXIS));
             sousTotalPanel.setBackground(Color.WHITE);
 
-            JLabel sousTotalLabel = new JLabel(String.valueOf(sousTotal));
+            JLabel sousTotalLabel = new JLabel(formatPrix.format(sousTotal));
             sousTotalLabel.setFont(new Font("Arial", Font.BOLD, 14));
             sousTotalLabel.setForeground(Color.decode("#212529"));
             sousTotalPanel.add(sousTotalLabel);
@@ -303,9 +308,7 @@ public class PanierView extends JPanel {
                 }
                 // Ajouter le nouvel écouteur
                 validerButton.addActionListener(listener);
-                System.out.println("Écouteur ajouté au bouton de validation");
             } else {
-                System.out.println("Erreur: validerButton est null dans setValidationListener");
                 // Créer le bouton s'il n'existe pas encore
                 validerButton = new JButton("Valider ma commande");
                 validerButton.setFont(new Font("Arial", Font.BOLD, 16));
@@ -315,7 +318,6 @@ public class PanierView extends JPanel {
                 validerButton.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
                 validerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 validerButton.addActionListener(listener);
-                System.out.println("Bouton de validation créé et écouteur ajouté");
             }
         } catch (Exception e) {
             System.err.println("Exception dans setValidationListener: " + e.getMessage());

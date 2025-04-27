@@ -35,7 +35,7 @@ public class ArticleDAO {
                         rs.getInt("quantiteVrac"),
                         rs.getInt("stock"),
                         rs.getString("description"),
-                        rs.getString("catégorie")
+                        rs.getString("categorie")
                 );
                 articles.add(article);
             }
@@ -69,7 +69,7 @@ public class ArticleDAO {
                         rs.getInt("quantiteVrac"),
                         rs.getInt("stock"),
                         rs.getString("description"),
-                        rs.getString("catégorie")
+                        rs.getString("categorie")
                 );
                 articles.add(article);
             }
@@ -108,7 +108,7 @@ public class ArticleDAO {
                     rs.getInt("quantiteVrac"),
                     rs.getInt("stock"),
                     rs.getString("description"),
-                    rs.getString("catégorie")
+                    rs.getString("categorie")
                 );
                 chargerPromotion(article);
                 return article;
@@ -147,7 +147,7 @@ public class ArticleDAO {
                     rs.getInt("quantiteVrac"),
                     rs.getInt("stock"),
                     rs.getString("description"),
-                    rs.getString("catégorie")
+                    rs.getString("categorie")
                 );
                 articles.add(article);
             }
@@ -165,7 +165,7 @@ public class ArticleDAO {
     public Article ajouter(Article article) {
         try {
             PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO Article (nom, marque, description, prixUnitaire, prixVrac, quantiteVrac, stock, urlImage, catégorie) " +
+                "INSERT INTO Article (nom, marque, description, prixUnitaire, prixVrac, quantiteVrac, stock, urlImage, categorie) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             );
@@ -205,7 +205,7 @@ public class ArticleDAO {
         try {
             PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE Article SET nom = ?, marque = ?, description = ?, prixUnitaire = ?, " +
-                "prixVrac = ?, quantiteVrac = ?, stock = ?, urlImage = ?, catégorie = ? " +
+                "prixVrac = ?, quantiteVrac = ?, stock = ?, urlImage = ?, categorie = ? " +
                 "WHERE idArticle = ?"
             );
             stmt.setString(1, article.getNom());
@@ -304,21 +304,25 @@ public class ArticleDAO {
     public List<String> getAllCategories() {
         List<String> categories = new ArrayList<>();
         try {
+            
+            // Modification de la requête SQL pour récupérer toutes les catégories
             PreparedStatement stmt = connection.prepareStatement(
-                "SELECT DISTINCT catégorie FROM Article WHERE catégorie IS NOT NULL AND catégorie <> '' ORDER BY catégorie"
+                "SELECT DISTINCT categorie FROM Article WHERE categorie IS NOT NULL ORDER BY categorie"
             );
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
-                String categorie = rs.getString("catégorie");
-                if (categorie != null && !categorie.isEmpty()) {
+                String categorie = rs.getString("categorie");
+                if (categorie != null) {
                     categories.add(categorie);
                 }
             }
             
+            
             rs.close();
             stmt.close();
         } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des catégories: " + e.getMessage());
             e.printStackTrace();
         }
         return categories;
@@ -332,7 +336,7 @@ public class ArticleDAO {
     public List<Article> getByCategory(String categorie) {
         List<Article> articles = new ArrayList<>();
         try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Article WHERE catégorie = ?");
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Article WHERE categorie = ?");
             stmt.setString(1, categorie);
             ResultSet rs = stmt.executeQuery();
             
@@ -347,7 +351,120 @@ public class ArticleDAO {
                     rs.getInt("quantiteVrac"),
                     rs.getInt("stock"),
                     rs.getString("description"),
-                    rs.getString("catégorie")
+                    rs.getString("categorie")
+                );
+                articles.add(article);
+            }
+            
+            
+            rs.close();
+            stmt.close();
+            
+            // Charger les promotions pour tous les articles
+            chargerPromotions(articles);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return articles;
+    }
+
+    /**
+     * Récupérer toutes les marques disponibles
+     */
+    public List<String> getAllMarques() {
+        List<String> marques = new ArrayList<>();
+        try {
+            // Récupérer toutes les marques distinctes des articles
+            PreparedStatement stmt = connection.prepareStatement(
+                "SELECT DISTINCT marque FROM Article WHERE marque IS NOT NULL ORDER BY marque"
+            );
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                String marque = rs.getString("marque");
+                if (marque != null && !marque.isEmpty()) {
+                    marques.add(marque);
+                }
+            }
+            
+            rs.close();
+            stmt.close();
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des marques: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return marques;
+    }
+    
+    /**
+     * Récupérer les articles par marque
+     * @param marque Marque à filtrer
+     * @return Liste des articles de la marque spécifiée
+     */
+    public List<Article> getByMarque(String marque) {
+        List<Article> articles = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Article WHERE marque = ?");
+            stmt.setString(1, marque);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                Article article = new Article(
+                    rs.getInt("idArticle"),
+                    rs.getString("nom"),
+                    rs.getString("marque"),
+                    rs.getString("urlImage"),
+                    rs.getDouble("prixUnitaire"),
+                    rs.getDouble("prixVrac"),
+                    rs.getInt("quantiteVrac"),
+                    rs.getInt("stock"),
+                    rs.getString("description"),
+                    rs.getString("categorie")
+                );
+                articles.add(article);
+            }
+            
+            rs.close();
+            stmt.close();
+            
+            // Charger les promotions pour tous les articles
+            chargerPromotions(articles);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return articles;
+    }
+    
+    /**
+     * Récupérer les articles par catégorie et marque
+     * @param categorie Catégorie à filtrer
+     * @param marque Marque à filtrer
+     * @return Liste des articles correspondant aux critères
+     */
+    public List<Article> getByCategoryAndMarque(String categorie, String marque) {
+        List<Article> articles = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM Article WHERE categorie = ? AND marque = ?"
+            );
+            stmt.setString(1, categorie);
+            stmt.setString(2, marque);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                Article article = new Article(
+                    rs.getInt("idArticle"),
+                    rs.getString("nom"),
+                    rs.getString("marque"),
+                    rs.getString("urlImage"),
+                    rs.getDouble("prixUnitaire"),
+                    rs.getDouble("prixVrac"),
+                    rs.getInt("quantiteVrac"),
+                    rs.getInt("stock"),
+                    rs.getString("description"),
+                    rs.getString("categorie")
                 );
                 articles.add(article);
             }

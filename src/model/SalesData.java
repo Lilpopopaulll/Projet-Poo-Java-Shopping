@@ -65,7 +65,7 @@ public class SalesData {
     public static void loadSalesDataFromDB(Connection conn) {
         connection = conn;
         if (connection == null) {
-            System.out.println("Connexion à la base de données non disponible pour les statistiques.");
+            System.err.println("Connexion à la base de données non disponible pour les statistiques.");
             return;
         }
         
@@ -79,7 +79,7 @@ public class SalesData {
             ResultSet checkRs = checkStmt.executeQuery();
             
             if (checkRs.next() && checkRs.getInt(1) == 0) {
-                System.out.println("Aucune donnée de vente trouvée dans la table lignecommande. Utilisation des données par défaut.");
+                System.err.println("Aucune donnée de vente trouvée dans la table lignecommande. Utilisation des données par défaut.");
                 initDefaultData();
                 checkRs.close();
                 checkStmt.close();
@@ -118,17 +118,17 @@ public class SalesData {
             
             // Si aucune donnée n'a été trouvée, utiliser les données par défaut
             if (detailedSales.isEmpty()) {
-                System.out.println("Aucune donnée de vente trouvée dans la base de données. Utilisation des données par défaut.");
+                System.err.println("Aucune donnée de vente trouvée dans la base de données. Utilisation des données par défaut.");
                 initDefaultData();
             } else {
-                System.out.println("Données de vente chargées depuis la base de données: " + detailedSales.size() + " catégories trouvées.");
+                System.err.println("Données de vente chargées depuis la base de données: " + detailedSales.size() + " catégories trouvées.");
                 for (Map.Entry<String, Map<String, Integer>> entry : detailedSales.entrySet()) {
-                    System.out.println("Catégorie: " + entry.getKey() + " - " + entry.getValue().size() + " articles");
+                    System.err.println("Catégorie: " + entry.getKey() + " - " + entry.getValue().size() + " articles");
                 }
             }
             
         } catch (SQLException e) {
-            System.out.println("Erreur lors du chargement des données de vente depuis la base de données: " + e.getMessage());
+            System.err.println("Erreur lors du chargement des données de vente depuis la base de données: " + e.getMessage());
             e.printStackTrace();
             
             // En cas d'erreur, utiliser les données par défaut
