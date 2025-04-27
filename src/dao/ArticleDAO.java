@@ -300,12 +300,10 @@ public class ArticleDAO {
 
     /**
      * Récupérer toutes les catégories disponibles
-     * @return Liste des catégories distinctes
      */
     public List<String> getAllCategories() {
         List<String> categories = new ArrayList<>();
         try {
-            // Utiliser une requête SQL qui sélectionne toutes les catégories distinctes
             PreparedStatement stmt = connection.prepareStatement(
                 "SELECT DISTINCT catégorie FROM Article WHERE catégorie IS NOT NULL AND catégorie <> '' ORDER BY catégorie"
             );
@@ -318,16 +316,9 @@ public class ArticleDAO {
                 }
             }
             
-            // Afficher les catégories trouvées pour le débogage
-            System.out.println("Catégories trouvées dans la base de données:");
-            for (String categorie : categories) {
-                System.out.println("- " + categorie);
-            }
-            
             rs.close();
             stmt.close();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des catégories: " + e.getMessage());
             e.printStackTrace();
         }
         return categories;

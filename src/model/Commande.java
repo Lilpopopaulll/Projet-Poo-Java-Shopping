@@ -8,12 +8,12 @@ public class Commande {
     private int idCommande;
     private int idClient;
     private Date dateCommande;
-    private int total;
+    private double total; // Changé de int à double pour conserver les décimales
     private String panier; // "panier" pour une commande en cours, autre valeur pour une commande validée
     private List<LigneCommande> lignesCommande;
 
     // Constructeur
-    public Commande(int idCommande, int idClient, Date dateCommande, int total, String panier) {
+    public Commande(int idCommande, int idClient, Date dateCommande, double total, String panier) {
         this.idCommande = idCommande;
         this.idClient = idClient;
         this.dateCommande = dateCommande;
@@ -47,11 +47,11 @@ public class Commande {
         this.dateCommande = dateCommande;
     }
 
-    public int getTotal() {
+    public double getTotal() {
         return total;
     }
 
-    public void setTotal(int total) {
+    public void setTotal(double total) {
         this.total = total;
     }
 

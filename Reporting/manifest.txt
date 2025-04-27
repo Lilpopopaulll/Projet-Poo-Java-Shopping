@@ -1,2 +1,0 @@
-Main-Class: main.Main
-Class-Path: lib/jfreechart-1.5.3.jar lib/jcommon-1.0.24.jar

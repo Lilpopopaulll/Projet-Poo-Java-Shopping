@@ -64,7 +64,7 @@ public class CommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idClient"),
                     rs.getDate("dateCommande"),
-                    rs.getInt("total"),
+                    rs.getDouble("total"),
                     rs.getString("panier")
                 );
                 
@@ -93,7 +93,7 @@ public class CommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idClient"),
                     rs.getDate("dateCommande"),
-                    rs.getInt("total"),
+                    rs.getDouble("total"),
                     rs.getString("panier")
                 );
                 
@@ -121,7 +121,7 @@ public class CommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idClient"),
                     rs.getDate("dateCommande"),
-                    rs.getInt("total"),
+                    rs.getDouble("total"),
                     rs.getString("panier")
                 );
                 
@@ -151,7 +151,7 @@ public class CommandeDAO {
                     rs.getInt("idCommande"),
                     rs.getInt("idClient"),
                     rs.getDate("dateCommande"),
-                    rs.getInt("total"),
+                    rs.getDouble("total"),
                     rs.getString("panier")
                 );
                 
@@ -171,7 +171,7 @@ public class CommandeDAO {
             );
             stmt.setInt(1, commande.getIdClient());
             stmt.setDate(2, new java.sql.Date(commande.getDateCommande().getTime()));
-            stmt.setInt(3, commande.getTotal());
+            stmt.setDouble(3, commande.getTotal());
             stmt.setString(4, commande.getPanier());
             stmt.setInt(5, commande.getIdCommande());
             

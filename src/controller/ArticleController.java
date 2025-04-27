@@ -73,7 +73,6 @@ public class ArticleController implements ArticleClickListener {
                     Article currentArticle = detailVue.getCurrentArticle();
                     int quantite = detailVue.getSelectedQuantity();
                     
-                    System.out.println("Tentative d'ajout au panier: " + currentArticle.getNom() + ", quantité: " + quantite);
                     
                     // Ajouter l'article au panier
                     ajouterAuPanier(currentArticle, quantite);

@@ -15,7 +15,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class PanierController implements PanierListener, ArticleClickListener {
     private final CommandeDAO commandeDAO;
@@ -52,10 +54,11 @@ public class PanierController implements PanierListener, ArticleClickListener {
         // Configurer les écouteurs après l'initialisation de la vue
         try {
             configurerPanierView();
-            System.out.println("Écouteurs du panier configurés");
         } catch (Exception e) {
-            System.err.println("Erreur lors de la configuration des écouteurs du panier: " + e.getMessage());
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, 
+                "Erreur lors de la configuration des écouteurs du panier: " + e.getMessage(),
+                "Erreur", 
+                JOptionPane.ERROR_MESSAGE);
         }
         
         // Ajouter la vue du panier au mainPanel
@@ -127,22 +130,16 @@ public class PanierController implements PanierListener, ArticleClickListener {
         
         // Vérifier si la quantité vrac est supérieure à 0 pour éviter la division par zéro
         if (quantiteVrac > 0 && nouvelleQuantite >= quantiteVrac) {
-            // Calculer combien de lots complets de vrac nous avons
-            int nombreLotsVrac = nouvelleQuantite / quantiteVrac;
-            int uniteRestantes = nouvelleQuantite % quantiteVrac;
-            
-            // Calculer le prix total (lots en vrac + unités restantes au prix normal)
-            double prixTotal = (nombreLotsVrac * prixVrac) + (uniteRestantes * prixUnitaire);
-            
-            // Calculer le prix moyen par unité
-            prixApplique = prixTotal / nouvelleQuantite;
-            
-            System.out.println("Article: " + article.getNom() + ", Quantité vrac: " + quantiteVrac + ", Prix vrac: " + prixVrac);
-            System.out.println("Prix appliqué: " + prixApplique + " (moyenne pondérée de " + 
-                               nombreLotsVrac + " lots au prix de " + prixVrac + 
-                               " et " + uniteRestantes + " unités au prix de " + prixUnitaire + ")");
+            // Si la quantité est suffisante pour le prix en vrac, appliquer le prix en vrac
+            // Mais si une promotion existe, appliquer la même réduction au prix en vrac
+            if (article.getPromotion() != null) {
+                double pourcentageReduction = (100 - article.getPromotion().getPourcentage()) / 100;
+                prixApplique = prixVrac * pourcentageReduction;
+            } else {
+                prixApplique = prixVrac;
+            }
         } else {
-            // Appliquer le prix unitaire standard
+            // Appliquer le prix unitaire standard (déjà avec promotion si applicable)
             prixApplique = prixUnitaire;
         }
 
@@ -222,8 +219,10 @@ public class PanierController implements PanierListener, ArticleClickListener {
             try {
                 configurerPanierView();
             } catch (Exception e) {
-                System.err.println("Erreur lors de la configuration des écouteurs du panier: " + e.getMessage());
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, 
+                    "Erreur lors de la configuration des écouteurs du panier: " + e.getMessage(),
+                    "Erreur", 
+                    JOptionPane.ERROR_MESSAGE);
             }
             
             // Afficher la vue du panier
@@ -234,7 +233,6 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 // Forcer le rafraîchissement
                 mainPanel.revalidate();
                 mainPanel.repaint();
-                System.out.println("Panier affiché");
             }
         }
     }
@@ -255,13 +253,14 @@ public class PanierController implements PanierListener, ArticleClickListener {
             panierView.setValidationListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("Clic sur le bouton Valider la commande détecté");
                     validerPanier();
                 }
             });
         } catch (Exception e) {
-            System.err.println("Erreur lors de la configuration de l'écouteur de validation: " + e.getMessage());
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, 
+                "Erreur lors de la configuration de l'écouteur de validation: " + e.getMessage(),
+                "Erreur", 
+                JOptionPane.ERROR_MESSAGE);
         }
         
         // Configurer l'écouteur pour le bouton de retour
@@ -276,7 +275,6 @@ public class PanierController implements PanierListener, ArticleClickListener {
                     // Forcer le rafraîchissement
                     mainPanel.revalidate();
                     mainPanel.repaint();
-                    System.out.println("Retour à la page d'accueil depuis le panier");
                 }
                 
                 // Propager l'événement au parent si nécessaire
@@ -290,14 +288,12 @@ public class PanierController implements PanierListener, ArticleClickListener {
     // Supprimer un article du panier
     public void supprimerDuPanier(int idArticle) {
         if (clientConnecte == null) {
-            System.out.println("Impossible de supprimer l'article : client non connecté");
             return;
         }
 
         // Récupérer le panier du client
         Commande panier = commandeDAO.getPanierByClientId(clientConnecte.getIdClient());
         if (panier == null) {
-            System.out.println("Impossible de supprimer l'article : panier non trouvé");
             return;
         }
 
@@ -318,9 +314,6 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 if (article == null) {
                     // Si l'article n'est pas chargé dans la ligne de commande, le récupérer depuis la base de données
                     article = articleDAO.getById(idArticle);
-                    if (article == null) {
-                        System.out.println("Avertissement : Article non trouvé dans la base de données (ID: " + idArticle + ")");
-                    }
                 }
                 
                 if (article != null) {
@@ -329,17 +322,8 @@ public class PanierController implements PanierListener, ArticleClickListener {
                     int nouveauStock = stockActuel + quantiteARestorer;
                     
                     // Mettre à jour le stock dans la base de données
-                    boolean stockMisAJour = articleDAO.updateStock(article.getIdArticle(), nouveauStock);
-                    if (stockMisAJour) {
-                        // Mettre à jour le stock dans l'objet article en mémoire
-                        article.setStock(nouveauStock);
-                        System.out.println("Stock mis à jour pour l'article " + article.getNom() + 
-                                           " (ID: " + article.getIdArticle() + ") : " + 
-                                           stockActuel + " -> " + nouveauStock + 
-                                           " (+" + quantiteARestorer + ")");
-                    } else {
-                        System.out.println("Erreur lors de la mise à jour du stock dans la base de données");
-                    }
+                    articleDAO.updateStock(article.getIdArticle(), nouveauStock);
+                    article.setStock(nouveauStock);
                 }
                 
                 // Supprimer la ligne de commande
@@ -348,9 +332,7 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 
                 // Mettre à jour le total de la commande
                 commandeDAO.update(panier);
-                
-                System.out.println("Article supprimé du panier avec succès");
-                
+
                 // Nouvelle approche: Recréer complètement la vue du panier
                 if (panier.getLignesCommande().isEmpty()) {
                     // Retourner à la landing page si le panier est vide
@@ -361,7 +343,6 @@ public class PanierController implements PanierListener, ArticleClickListener {
                         // Forcer le rafraîchissement
                         mainPanel.revalidate();
                         mainPanel.repaint();
-                        System.out.println("Retour à la landing page car le panier est vide");
                     }
                     JOptionPane.showMessageDialog(null, 
                         "Votre panier est maintenant vide", 
@@ -378,7 +359,10 @@ public class PanierController implements PanierListener, ArticleClickListener {
                             int idArticleToDelete = Integer.parseInt(idArticleStr);
                             supprimerDuPanier(idArticleToDelete);
                         } catch (NumberFormatException ex) {
-                            System.err.println("ID d'article invalide: " + idArticleStr);
+                            JOptionPane.showMessageDialog(null, 
+                                "ID d'article invalide: " + idArticleStr,
+                                "Erreur", 
+                                JOptionPane.ERROR_MESSAGE);
                         }
                     });
                     
@@ -421,18 +405,19 @@ public class PanierController implements PanierListener, ArticleClickListener {
                         // Forcer le rafraîchissement
                         mainPanel.revalidate();
                         mainPanel.repaint();
-                        System.out.println("Panier rafraîchi après suppression d'un article");
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 JOptionPane.showMessageDialog(null, 
-                    "Une erreur est survenue lors de la suppression de l'article du panier", 
+                    "Erreur lors de la suppression de l'article du panier: " + e.getMessage(),
                     "Erreur", 
                     JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            System.out.println("Article non trouvé dans le panier (ID: " + idArticle + ")");
+            JOptionPane.showMessageDialog(null, 
+                "Article non trouvé dans le panier (ID: " + idArticle + ")",
+                "Erreur", 
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -490,10 +475,11 @@ public class PanierController implements PanierListener, ArticleClickListener {
             // Forcer le rafraîchissement
             mainPanel.revalidate();
             mainPanel.repaint();
-            
-            System.out.println("Passage à la vue de validation de commande");
         } else {
-            System.out.println("Erreur: mainPanel est null");
+            JOptionPane.showMessageDialog(null, 
+                "Erreur: mainPanel est null",
+                "Erreur", 
+                JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -505,16 +491,17 @@ public class PanierController implements PanierListener, ArticleClickListener {
             
             // Mettre à jour le total de la commande pour inclure les frais de livraison
             double totalAvecFrais = panier.getTotal() + fraisLivraison;
-            panier.setTotal((int)totalAvecFrais); // Conversion en int si nécessaire
+            panier.setTotal(totalAvecFrais); // Ne pas convertir en int pour préserver les décimales
             commandeDAO.update(panier);
             
             // Changer le statut du panier
             commandeDAO.validerPanier(panier.getIdCommande());
             
-            // Afficher un message de confirmation
+            // Afficher un message de confirmation avec formatage du prix
+            NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
             JOptionPane.showMessageDialog(null, 
                 "Votre commande a été validée avec succès !\n" +
-                "Montant total : " + totalAvecFrais + " €\n" +
+                "Montant total : " + formatPrix.format(totalAvecFrais) + "\n" +
                 "Adresse de livraison : " + adresseLivraison + "\n" +
                 "Mode de livraison : " + modeLivraison,
                 "Commande validée", 
@@ -528,12 +515,10 @@ public class PanierController implements PanierListener, ArticleClickListener {
                 // Forcer le rafraîchissement
                 mainPanel.revalidate();
                 mainPanel.repaint();
-                System.out.println("Retour à la page d'accueil après finalisation de la commande");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             JOptionPane.showMessageDialog(null, 
-                "Une erreur est survenue lors de la validation de votre commande.", 
+                "Erreur lors de la validation de votre commande: " + e.getMessage(),
                 "Erreur", 
                 JOptionPane.ERROR_MESSAGE);
         }

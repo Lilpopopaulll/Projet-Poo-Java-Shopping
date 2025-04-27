@@ -93,7 +93,7 @@ public class Article {
      */
     public double getPrixApresPromotion() {
         if (promotion != null) {
-            return prixUnitaire * (100 - promotion.getPourcentage()) / 100.0;
+            return prixUnitaire * (1 - (promotion.getPourcentage() / 100.0));
         }
         return prixUnitaire;
     }

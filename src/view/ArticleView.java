@@ -35,18 +35,15 @@ public class ArticleView extends JPanel {
     public void setCategoryFilterListener(ActionListener listener) {
         this.categoryFilterListener = listener;
         
-        // Si le combobox existe déjà, lui ajouter l'écouteur
         if (categorieComboBox != null) {
-            categorieComboBox.removeActionListener(categoryFilterListener); // Éviter les doublons
+            categorieComboBox.removeActionListener(categoryFilterListener); 
             categorieComboBox.addActionListener(categoryFilterListener);
         }
     }
     
     public void setCategories(List<String> categories) {
-        // Stocker les catégories pour une utilisation ultérieure
         this.categories = new ArrayList<>(categories);
         
-        // Si le combobox existe déjà, mettre à jour ses éléments
         if (categorieComboBox != null) {
             updateCategoriesComboBox();
         }
@@ -57,15 +54,8 @@ public class ArticleView extends JPanel {
             categorieComboBox.removeAllItems();
             categorieComboBox.addItem("TOUTES LES CATÉGORIES");
             
-            // Ajouter les catégories stockées
             for (String categorie : categories) {
                 categorieComboBox.addItem(categorie.toUpperCase());
-            }
-            
-            // Afficher les catégories dans la console pour le débogage
-            System.out.println("Catégories ajoutées au combobox:");
-            for (int i = 0; i < categorieComboBox.getItemCount(); i++) {
-                System.out.println("- " + categorieComboBox.getItemAt(i));
             }
         }
     }
@@ -74,7 +64,7 @@ public class ArticleView extends JPanel {
         if (categorieComboBox != null && categorieComboBox.getSelectedIndex() > 0) {
             return ((String) categorieComboBox.getSelectedItem()).toLowerCase();
         }
-        return null; // Aucune catégorie sélectionnée ou "Toutes les catégories"
+        return null; 
     }
 
     public void afficherArticles(List<Article> articles) {
@@ -86,18 +76,15 @@ public class ArticleView extends JPanel {
 
         int sideMargin = 40;
 
-        // Panel pour le titre et le filtre
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(AppTheme.BACKGROUND_DARK);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(30, sideMargin, 30, sideMargin));
 
-        // Titre
         JLabel titleLabel = new JLabel("NOS ARTICLES");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
         titleLabel.setForeground(AppTheme.TEXT_WHITE);
         headerPanel.add(titleLabel, BorderLayout.WEST);
         
-        // Filtre par catégorie
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         filterPanel.setBackground(AppTheme.BACKGROUND_DARK);
         
@@ -105,19 +92,15 @@ public class ArticleView extends JPanel {
         filterLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         filterLabel.setForeground(AppTheme.TEXT_GRAY);
         
-        // Créer ou réutiliser le combobox de catégorie
         if (categorieComboBox == null) {
             categorieComboBox = new JComboBox<>();
             
-            // Style du combobox
             categorieComboBox.setBackground(AppTheme.BACKGROUND_MEDIUM);
             categorieComboBox.setForeground(AppTheme.TEXT_WHITE);
             categorieComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
             
-            // Ajouter les catégories stockées
             updateCategoriesComboBox();
             
-            // Ajouter l'écouteur s'il existe
             if (categoryFilterListener != null) {
                 categorieComboBox.addActionListener(categoryFilterListener);
             }
@@ -130,7 +113,6 @@ public class ArticleView extends JPanel {
         
         containerPanel.add(headerPanel);
 
-        // Ajouter une description du site
         JPanel descriptionPanel = new JPanel();
         descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
         descriptionPanel.setBackground(AppTheme.BACKGROUND_DARK);
@@ -161,7 +143,6 @@ public class ArticleView extends JPanel {
         
         containerPanel.add(descriptionPanel);
 
-        // Panel pour les articles avec GridBagLayout
         articlePanel = new JPanel(new GridBagLayout());
         articlePanel.setBackground(AppTheme.BACKGROUND_DARK);
         articlePanel.setBorder(BorderFactory.createEmptyBorder(0, sideMargin, 40, sideMargin));
@@ -176,7 +157,6 @@ public class ArticleView extends JPanel {
         int row = 0;
         
         for (Article article : articles) {
-            // Créer une carte pour chaque article
             JPanel card = new JPanel(new BorderLayout(0, 10));
             card.setBackground(AppTheme.BACKGROUND_MEDIUM);
             card.setBorder(BorderFactory.createCompoundBorder(
@@ -184,12 +164,10 @@ public class ArticleView extends JPanel {
                     BorderFactory.createEmptyBorder(0, 0, 15, 0)
             ));
             
-            // Panel pour l'image
             JPanel imageContainer = new JPanel(new BorderLayout());
             imageContainer.setBackground(AppTheme.BACKGROUND_MEDIUM);
             imageContainer.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
             
-            // Image de l'article
             JLabel imageLabel = new JLabel();
             imageLabel.setHorizontalAlignment(JLabel.CENTER);
             imageLabel.setPreferredSize(new Dimension(220, 220));
@@ -207,19 +185,16 @@ public class ArticleView extends JPanel {
             
             imageContainer.add(imageLabel, BorderLayout.CENTER);
             
-            // Nom de l'article
             JLabel nomLabel = new JLabel(article.getNom().toUpperCase());
             nomLabel.setFont(new Font("Arial", Font.BOLD, 14));
             nomLabel.setForeground(AppTheme.TEXT_WHITE);
             nomLabel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
             
-            // Panel pour le prix et autres infos
             JPanel infoPanel = new JPanel();
             infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
             infoPanel.setBackground(AppTheme.BACKGROUND_MEDIUM);
             infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 15));
             
-            // Affichage du prix (avec gestion des promotions)
             JPanel prixPanel = new JPanel();
             prixPanel.setLayout(new BoxLayout(prixPanel, BoxLayout.X_AXIS));
             prixPanel.setBackground(AppTheme.BACKGROUND_MEDIUM);
@@ -230,17 +205,14 @@ public class ArticleView extends JPanel {
                 prixLabel.setForeground(new Color(220, 53, 69));
                 prixPanel.add(prixLabel);
             } else if (article.getPromotion() != null) {
-                // Afficher le prix original barré
                 JLabel prixOriginalLabel = new JLabel(String.format("%.2f €", article.getPrixUnitaire()));
                 prixOriginalLabel.setForeground(AppTheme.TEXT_GRAY);
                 prixOriginalLabel.setFont(new Font("Arial", Font.PLAIN, 14));
                 
-                // Appliquer le style barré
                 Map<TextAttribute, Object> attributes = new HashMap<>();
                 attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
                 prixOriginalLabel.setFont(prixOriginalLabel.getFont().deriveFont(attributes));
                 
-                // Calculer le prix après promotion
                 double prixPromo = article.getPromotion().calculerPrixPromo(article.getPrixUnitaire());
                 JLabel prixPromoLabel = new JLabel(String.format(" %.2f €", prixPromo));
                 prixPromoLabel.setForeground(AppTheme.TEXT_WHITE);
@@ -255,7 +227,6 @@ public class ArticleView extends JPanel {
                 prixPanel.add(prixLabel);
             }
             
-            // Ajouter la catégorie
             if (article.getCategorie() != null && !article.getCategorie().isEmpty()) {
                 JLabel categorieLabel = new JLabel(article.getCategorie().toUpperCase());
                 categorieLabel.setFont(new Font("Arial", Font.ITALIC, 12));
@@ -271,7 +242,6 @@ public class ArticleView extends JPanel {
                 infoPanel.add(prixPanel);
             }
             
-            // Ajouter un bouton "SHOP NOW" pour chaque article
             JButton shopButton = new JButton("SHOP NOW");
             shopButton.setFont(new Font("Arial", Font.BOLD, 12));
             shopButton.setForeground(AppTheme.TEXT_WHITE);
@@ -284,17 +254,14 @@ public class ArticleView extends JPanel {
             shopButton.setAlignmentX(Component.LEFT_ALIGNMENT);
             shopButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
             
-            // Ajouter un peu d'espace avant le bouton
             infoPanel.add(Box.createVerticalStrut(10));
             infoPanel.add(shopButton);
             
-            // Assembler la carte
             card.add(imageContainer, BorderLayout.CENTER);
             card.add(nomLabel, BorderLayout.NORTH);
             card.add(infoPanel, BorderLayout.SOUTH);
 
             if (article.getStock() > 0) {
-                // Ajouter un écouteur de clic pour toute la carte
                 card.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -305,14 +272,12 @@ public class ArticleView extends JPanel {
                 });
                 card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 
-                // Ajouter un écouteur de clic pour le bouton
                 shopButton.addActionListener(e -> {
                     if (clickListener != null) {
                         clickListener.onArticleClick(article);
                     }
                 });
             } else {
-                // Style pour les articles en rupture de stock
                 card.setBackground(AppTheme.BACKGROUND_LIGHT);
                 imageContainer.setBackground(AppTheme.BACKGROUND_LIGHT);
                 infoPanel.setBackground(AppTheme.BACKGROUND_LIGHT);
@@ -326,13 +291,12 @@ public class ArticleView extends JPanel {
             articlePanel.add(card, gbc);
             
             col++;
-            if (col >= 3) { // Afficher 3 articles par ligne
+            if (col >= 3) { 
                 col = 0;
                 row++;
             }
         }
         
-        // Message si aucun article n'est trouvé
         if (articles.isEmpty()) {
             JLabel emptyLabel = new JLabel("AUCUN ARTICLE TROUVÉ");
             emptyLabel.setFont(new Font("Arial", Font.ITALIC, 18));
@@ -341,19 +305,16 @@ public class ArticleView extends JPanel {
             articlePanel.add(emptyLabel, gbc);
         }
 
-        // Créer un JScrollPane pour permettre le défilement
         JScrollPane scrollPane = new JScrollPane(articlePanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBackground(AppTheme.BACKGROUND_DARK);
         scrollPane.getViewport().setBackground(AppTheme.BACKGROUND_DARK);
         
-        // Appliquer le style moderne à la scrollbar
         scrollPane.getVerticalScrollBar().setUI(new view.theme.ModernScrollBarUI());
         
         containerPanel.add(scrollPane);
 
-        // Ajouter un footer
         JPanel footerPanel = new JPanel();
         footerPanel.setBackground(AppTheme.BACKGROUND_MEDIUM);
         footerPanel.setLayout(new BorderLayout());
@@ -364,7 +325,6 @@ public class ArticleView extends JPanel {
         footerLabel.setForeground(AppTheme.TEXT_GRAY);
         footerPanel.add(footerLabel, BorderLayout.CENTER);
         
-        // Ajouter le conteneur principal et le footer
         add(containerPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         

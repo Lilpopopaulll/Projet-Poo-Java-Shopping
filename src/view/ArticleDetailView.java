@@ -138,7 +138,6 @@ public class ArticleDetailView extends JPanel {
         vracPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         vracPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
-        System.out.println("Article: " + article.getNom() + ", Quantité vrac: " + article.getQuantiteVrac() + ", Prix vrac: " + article.getPrixVrac());
         
         if (article.getQuantiteVrac() > 0) {
             JLabel vracTitleLabel = new JLabel("VENTE EN VRAC");

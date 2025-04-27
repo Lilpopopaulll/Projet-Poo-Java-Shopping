@@ -128,7 +128,7 @@ public class HistoriqueView extends JPanel {
             String id = String.valueOf(commande.getIdCommande());
             String date = commande.getDateCommande() != null ? formatDate.format(commande.getDateCommande()) : "N/A";
             String statut = commande.getStatut();
-            String montantTotal = formatPrix.format(commande.getTotal() / 100.0); // Conversion en euros
+            String montantTotal = formatPrix.format(commande.getTotal()); // Conversion en euros
             
             // Créer un bouton pour voir le détail
             JButton detailButton = new JButton("Détail");

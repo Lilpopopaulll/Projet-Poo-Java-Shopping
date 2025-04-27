@@ -47,6 +47,9 @@ public class ValidationCommandeView extends JPanel {
     // Informations de la commande
     private double fraisLivraison = 0.0;
     
+    // Variable pour stocker la commande actuelle
+    private Commande commande;
+    
     // Listeners
     private ActionListener annulerListener;
     private ActionListener validerPaiementListener;
@@ -248,6 +251,9 @@ public class ValidationCommandeView extends JPanel {
         String[] modesLivraison = {
             "Standard (3-5 jours) - 4,99 €",
             "Express (1-2 jours) - 9,99 €",
+            "Premium (24h) - 14,99 €",
+            "Économique (5-7 jours) - 2,99 €",
+            "International (7-14 jours) - 19,99 €",
             "Retrait en magasin - Gratuit"
         };
         modeLivraisonCombo = new JComboBox<>(modesLivraison);
@@ -261,6 +267,15 @@ public class ValidationCommandeView extends JPanel {
                     fraisLivraison = 9.99;
                     break;
                 case 2:
+                    fraisLivraison = 14.99;
+                    break;
+                case 3:
+                    fraisLivraison = 2.99;
+                    break;
+                case 4:
+                    fraisLivraison = 19.99;
+                    break;
+                case 5:
                     fraisLivraison = 0;
                     break;
             }
@@ -289,6 +304,7 @@ public class ValidationCommandeView extends JPanel {
         resumePanel.setLayout(new BoxLayout(resumePanel, BoxLayout.Y_AXIS));
         resumePanel.setBackground(Color.WHITE);
         resumePanel.setBorder(BorderFactory.createTitledBorder("Résumé de votre commande"));
+        resumePanel.setName("resumePanel"); // Ajout d'un nom pour faciliter la recherche
         
         JLabel totalArticlesLabel = new JLabel("Total articles : 0,00 €");
         JLabel totalLivraisonLabel = new JLabel("Frais de livraison : 4,99 €");
@@ -522,10 +538,73 @@ public class ValidationCommandeView extends JPanel {
         if (fraisLivraisonLabel != null) {
             NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
             fraisLivraisonLabel.setText(formatPrix.format(fraisLivraison));
+            
+            // Mettre à jour le résumé de la commande avec les nouveaux frais de livraison
+            updateTotalWithShippingCost();
+        }
+    }
+    
+    // Nouvelle méthode pour mettre à jour le total avec les frais de livraison
+    private void updateTotalWithShippingCost() {
+        // Rechercher le panneau de résumé et mettre à jour les labels
+        for (Component comp : livraisonPanel.getComponents()) {
+            if (comp instanceof JPanel) {
+                for (Component innerComp : ((JPanel) comp).getComponents()) {
+                    if (innerComp instanceof JPanel && innerComp.getName() != null && innerComp.getName().equals("resumePanel")) {
+                        JPanel resumePanel = (JPanel) innerComp;
+                        
+                        // Mettre à jour les labels
+                        NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+                        
+                        // On utilise directement la commande actuelle pour obtenir le total des articles
+                        double totalArticles = 0.0;
+                        if (commande != null) {
+                            totalArticles = commande.getTotal();
+                        }
+                        
+                        for (Component label : resumePanel.getComponents()) {
+                            if (label instanceof JLabel) {
+                                JLabel jLabel = (JLabel) label;
+                                if (jLabel.getText().startsWith("Frais de livraison")) {
+                                    jLabel.setText("Frais de livraison : " + formatPrix.format(fraisLivraison));
+                                } else if (jLabel.getText().startsWith("Total commande")) {
+                                    jLabel.setText("Total commande : " + formatPrix.format(totalArticles + fraisLivraison));
+                                }
+                            }
+                        }
+                        
+                        // Mettre à jour également le panneau de paiement
+                        updatePaiementTotal(totalArticles + fraisLivraison);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Nouvelle méthode pour mettre à jour le total dans le panneau de paiement
+    private void updatePaiementTotal(double total) {
+        if (paiementPanel == null) return;
+        
+        NumberFormat formatPrix = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        for (Component comp : paiementPanel.getComponents()) {
+            if (comp instanceof JPanel) {
+                for (Component innerComp : ((JPanel) comp).getComponents()) {
+                    if (innerComp instanceof JPanel) {
+                        for (Component label : ((JPanel) innerComp).getComponents()) {
+                            if (label instanceof JLabel && ((JLabel) label).getText().contains("€")) {
+                                ((JLabel) label).setText(formatPrix.format(total));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     
     public void setCommande(Commande commande, Client client) {
+        // Stocker la référence à la commande
+        this.commande = commande;
+        
         // Pré-remplir les champs avec les informations du client
         if (client != null) {
             // Pré-remplir l'adresse si disponible
@@ -559,19 +638,7 @@ public class ValidationCommandeView extends JPanel {
             }
             
             // Mettre à jour le montant total dans le panneau de paiement
-            for (Component comp : paiementPanel.getComponents()) {
-                if (comp instanceof JPanel) {
-                    for (Component innerComp : ((JPanel) comp).getComponents()) {
-                        if (innerComp instanceof JPanel) {
-                            for (Component label : ((JPanel) innerComp).getComponents()) {
-                                if (label instanceof JLabel && ((JLabel) label).getText().endsWith("€")) {
-                                    ((JLabel) label).setText(formatPrix.format(totalArticles + fraisLivraison));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            updatePaiementTotal(totalArticles + fraisLivraison);
         }
     }
     

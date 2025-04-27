@@ -2,61 +2,69 @@ package controller;
 
 import dao.ClientDAO;
 import model.Client;
+import javax.swing.JOptionPane;
 
 import java.sql.Connection;
-import java.util.Scanner;
 
 public class ClientController {
 
     private ClientDAO clientDAO;
+    private Client clientConnecte;
 
     public ClientController(Connection connection) {
         this.clientDAO = new ClientDAO(connection);
     }
 
-    // 🔐 Connexion d'un client existant
-    public Client seConnecter(String email, String motDePasse) {
+    // Connexion d'un client existant
+    public boolean seConnecter(String email, String motDePasse) {
         Client client = clientDAO.getByEmail(email);
+        
         if (client != null && client.getMotDePasse().equals(motDePasse)) {
-            System.out.println("✅ Connexion réussie !");
-            return client;
+            this.clientConnecte = client;
+            return true;
         } else {
-            System.out.println("❌ Email ou mot de passe incorrect.");
-            return null;
+            return false;
         }
     }
 
-    // 📝 Inscription d'un nouveau client
-    public void inscrireClient() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("=== Inscription ===");
-
-        System.out.print("Nom : ");
-        String nom = scanner.nextLine();
-
-        System.out.print("Prénom : ");
-        String prenom = scanner.nextLine();
-
-        System.out.print("Email : ");
-        String email = scanner.nextLine();
-
-        System.out.print("Mot de passe : ");
-        String motDePasse = scanner.nextLine();
-
-        String typeClient = "nouveau";
-
-        Client client = new Client(0, nom, prenom, email, motDePasse, typeClient);
-        clientDAO.create(client);
-
-        System.out.println("✅ Inscription réussie !");
+    // Inscription d'un nouveau client
+    public boolean inscrireClient(String nom, String prenom, String email, String motDePasse) {
+        // Vérifier si l'email existe déjà
+        Client clientExistant = clientDAO.getByEmail(email);
+        if (clientExistant != null) {
+            return false;
+        }
+        
+        // Créer un nouveau client
+        Client nouveauClient = new Client(0, nom, prenom, email, motDePasse, "client");
+        
+        // Ajouter le client à la base de données
+        clientDAO.create(nouveauClient);
+        
+        // Récupérer le client nouvellement créé pour obtenir son ID
+        Client clientCree = clientDAO.getByEmail(email);
+        
+        // Vérifier si l'ajout a réussi
+        if (clientCree != null && clientCree.getIdClient() > 0) {
+            this.clientConnecte = clientCree;
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    // 📋 Afficher les infos d’un client
-    public void afficherProfil(Client client) {
-        System.out.println("=== Profil du client ===");
-        System.out.println("Nom : " + client.getNom());
-        System.out.println("Prénom : " + client.getPrenom());
-        System.out.println("Email : " + client.getEmail());
-        System.out.println("Type : " + client.getTypeClient());
+    // Afficher les infos d’un client
+    public void afficherProfil() {
+        if (clientConnecte != null) {
+            // Afficher les informations du client dans une boîte de dialogue
+            JOptionPane.showMessageDialog(null,
+                "Profil du client\n\n" +
+                "Nom : " + clientConnecte.getNom() + "\n" +
+                "Prénom : " + clientConnecte.getPrenom() + "\n" +
+                "Email : " + clientConnecte.getEmail() + "\n" +
+                "Type : " + clientConnecte.getTypeClient(),
+                "Profil",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 }

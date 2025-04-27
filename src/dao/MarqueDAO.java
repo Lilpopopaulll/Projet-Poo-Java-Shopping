@@ -59,7 +59,6 @@ public class MarqueDAO {
                             description
                         );
                         marques.add(marque);
-                        System.out.println("Marque ajoutée depuis la table Marque: " + nom);
                     } catch (SQLException ex) {
                         System.err.println("Erreur lors de la création d'une marque: " + ex.getMessage());
                     }
@@ -91,7 +90,6 @@ public class MarqueDAO {
                             "Marque " + nomMarque
                         );
                         marques.add(marque);
-                        System.out.println("Marque ajoutée depuis la table Article: " + nomMarque);
                     }
                 }
                 rs.close();
@@ -111,7 +109,6 @@ public class MarqueDAO {
             marques.add(new Marque(4, "Lacoste", "lacoste.jpg", "Marque de vêtements de luxe"));
         }
         
-        System.out.println("Nombre total de marques chargées: " + marques.size());
         return marques;
     }
 
