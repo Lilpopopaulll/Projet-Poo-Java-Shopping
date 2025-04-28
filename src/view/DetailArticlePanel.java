@@ -16,10 +16,14 @@ public class DetailArticlePanel extends JPanel {
         JLabel imageLabel = new JLabel();
         imageLabel.setHorizontalAlignment(JLabel.CENTER);
         try {
-            String imagePath = "src/view/images/" + article.getUrlImage();
-            ImageIcon icon = new ImageIcon(imagePath);
-            Image image = icon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(image));
+            java.net.URL imageUrl = getClass().getResource("/view/images/" + article.getUrlImage());
+            if (imageUrl != null) {
+                ImageIcon icon = new ImageIcon(imageUrl);
+                Image image = icon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(image));
+            } else {
+                imageLabel.setText("Image manquante");
+            }
         } catch (Exception e) {
             imageLabel.setText("Image manquante");
         }

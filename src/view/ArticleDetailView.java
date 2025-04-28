@@ -111,10 +111,16 @@ public class ArticleDetailView extends JPanel {
         imageLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         try {
-            String imagePath = "src/view/images/" + article.getUrlImage();
-            ImageIcon icon = new ImageIcon(imagePath);
-            Image image = icon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(image));
+            java.net.URL imageUrl = getClass().getResource("/view/images/" + article.getUrlImage());
+            if (imageUrl != null) {
+                ImageIcon icon = new ImageIcon(imageUrl);
+                Image image = icon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(image));
+            } else {
+                imageLabel.setText("IMAGE NON DISPONIBLE");
+                imageLabel.setFont(new Font("Arial", Font.ITALIC, 16));
+                imageLabel.setForeground(AppTheme.TEXT_GRAY);
+            }
         } catch (Exception e) {
             imageLabel.setText("IMAGE NON DISPONIBLE");
             imageLabel.setFont(new Font("Arial", Font.ITALIC, 16));

@@ -105,20 +105,16 @@ public class MarqueDetailView extends JPanel {
             
             // Vérifier si l'URL est au format nom.jpg
             if (imagePath.endsWith(".jpg") || imagePath.endsWith(".png") || imagePath.endsWith(".gif")) {
-                // Construire le chemin complet vers l'image
-                String fullPath = "src/view/images/" + imagePath;
+                // Essayer de charger l'image depuis le classpath
+                java.net.URL imageUrl = getClass().getResource("/view/images/" + imagePath);
                 
-                // Essayer de charger l'image depuis le chemin relatif
-                java.io.File file = new java.io.File(fullPath);
-                if (file.exists()) {
-                    imageIcon = new ImageIcon(fullPath);
+                if (imageUrl != null) {
+                    imageIcon = new ImageIcon(imageUrl);
                 } else {
-                    // Essayer avec le chemin absolu du projet
-                    String projectPath = System.getProperty("user.dir");
-                    fullPath = projectPath + "/src/view/images/" + imagePath;
-                    file = new java.io.File(fullPath);
-                    if (file.exists()) {
-                        imageIcon = new ImageIcon(fullPath);
+                    // Essayer de charger une image par défaut
+                    java.net.URL defaultUrl = getClass().getResource("/view/images/default.jpg");
+                    if (defaultUrl != null) {
+                        imageIcon = new ImageIcon(defaultUrl);
                     }
                 }
             } else {

@@ -6,6 +6,7 @@ import controller.MarqueClickListener;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.net.URL;
 
 public class MarqueView extends JPanel {
     private static final int CARD_WIDTH = 200;
@@ -114,13 +115,10 @@ public class MarqueView extends JPanel {
             // Essayer de charger l'image depuis différents chemins
             if (!imagePath.startsWith("http")) {
                 // Essayer d'abord avec le chemin relatif
-                logoIcon = new ImageIcon("src/view/images/" + imagePath);
-                
-                // Si l'image n'a pas pu être chargée, essayer avec un chemin absolu
-                if (logoIcon.getIconWidth() <= 0) {
-                    String projectPath = System.getProperty("user.dir");
-                    String fullPath = projectPath + "/src/view/images/" + imagePath;
-                    
+                URL imageUrl = getClass().getResource("/view/images/" + imagePath);
+                if (imageUrl != null) {
+                    logoIcon = new ImageIcon(imageUrl);
+                } else {
                     // Essayer avec différentes extensions
                     String[] extensions = {".jpg", ".jpeg", ".png"};
                     String baseFileName = imagePath;
@@ -131,17 +129,15 @@ public class MarqueView extends JPanel {
                         baseFileName = baseFileName.substring(0, dotIndex);
                     }
                     
-                    java.io.File file = null;
                     boolean imageFound = false;
                     
                     // Essayer chaque extension
                     for (String ext : extensions) {
                         String fileNameWithExt = baseFileName + ext;
-                        fullPath = projectPath + "/src/view/images/" + fileNameWithExt;
-                        file = new java.io.File(fullPath);
+                        URL fileUrl = getClass().getResource("/view/images/" + fileNameWithExt);
                         
-                        if (file.exists()) {
-                            logoIcon = new ImageIcon(fullPath);
+                        if (fileUrl != null) {
+                            logoIcon = new ImageIcon(fileUrl);
                             imageFound = true;
                             break;
                         }
@@ -149,6 +145,10 @@ public class MarqueView extends JPanel {
                     
                     if (!imageFound) {
                         // Aucune image trouvée, on utilisera un placeholder
+                        URL defaultUrl = getClass().getResource("/view/images/default.jpg");
+                        if (defaultUrl != null) {
+                            logoIcon = new ImageIcon(defaultUrl);
+                        }
                     }
                 }
             } else {

@@ -270,30 +270,33 @@ public class ArticleView extends JPanel {
                 
                 if (imagePath != null && !imagePath.isEmpty()) {
                     // Essayer de charger l'image spécifique de l'article
-                    File imageFile = new File("src/view/images/" + imagePath);
-                    if (imageFile.exists()) {
-                        imageIcon = new ImageIcon(imageFile.getPath());
-                    } else {
-                        // Essayer de charger l'image de la marque
-                        String marqueImage = article.getMarque().toLowerCase().replace(" ", "_") + ".jpg";
-                        File marqueImageFile = new File("src/view/images/" + marqueImage);
-                        if (marqueImageFile.exists()) {
-                            imageIcon = new ImageIcon(marqueImageFile.getPath());
+                    try {
+                        java.net.URL imageUrl = getClass().getResource("/view/images/" + imagePath);
+                        if (imageUrl != null) {
+                            imageIcon = new ImageIcon(imageUrl);
                         } else {
-                            // Essayer de charger une image par défaut basée sur la catégorie
-                            String categoryFolder = "src/view/images/categories/";
-                            File categoryDir = new File(categoryFolder);
-                            if (categoryDir.exists() && categoryDir.isDirectory()) {
-                                File[] imageFiles = categoryDir.listFiles((dir, name) -> 
-                                    name.toLowerCase().endsWith(".jpg") || 
-                                    name.toLowerCase().endsWith(".png") || 
-                                    name.toLowerCase().endsWith(".jpeg"));
+                            // Essayer de charger l'image de la marque
+                            String marqueImage = article.getMarque().toLowerCase().replace(" ", "_") + ".jpg";
+                            java.net.URL marqueImageUrl = getClass().getResource("/view/images/" + marqueImage);
+                            if (marqueImageUrl != null) {
+                                imageIcon = new ImageIcon(marqueImageUrl);
+                            } else {
+                                // Essayer de charger une image par défaut basée sur la catégorie
+                                String categoryFolder = "/view/images/categories/";
+                                java.net.URL categoryUrl = getClass().getResource(categoryFolder);
                                 
-                                if (imageFiles != null && imageFiles.length > 0) {
-                                    imageIcon = new ImageIcon(imageFiles[0].getPath());
+                                if (categoryUrl != null) {
+                                    // Nous ne pouvons pas lister les fichiers dans un JAR directement
+                                    // Essayons de charger une image par défaut
+                                    java.net.URL defaultImageUrl = getClass().getResource(categoryFolder + "default.jpg");
+                                    if (defaultImageUrl != null) {
+                                        imageIcon = new ImageIcon(defaultImageUrl);
+                                    }
                                 }
                             }
                         }
+                    } catch (Exception e) {
+                        System.err.println("Erreur lors du chargement de l'image: " + e.getMessage());
                     }
                 }
                 
